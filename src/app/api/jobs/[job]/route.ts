@@ -3,6 +3,9 @@ import { timingSafeEqual } from "node:crypto";
 import { serverEnv } from "@/config/server-env";
 import { jobs, type JobName } from "@/server/jobs";
 
+// The nightly demo reset rebuilds a few hundred rows over the network; give it room on serverless platforms.
+export const maxDuration = 300;
+
 /**
  * Entry point for scheduled jobs: pg_cron + pg_net in Supabase (every minute) and Vercel cron (daily) call
  * it with `Authorization: Bearer <CRON_SECRET>`. Without a configured secret the endpoint is closed.

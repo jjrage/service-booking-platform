@@ -2,8 +2,8 @@
 -- app URL and the secret differ per environment).
 --
 -- pg_cron calls the app's jobs endpoint through pg_net every minute; the shared secret is kept in Vault.
--- Replace the two placeholders, then run the whole file. Vercel cron calls /api/jobs/plans once a day
--- (see vercel.json), so plans are not scheduled here.
+-- Replace the two placeholders, then run the whole file. Vercel cron calls /api/jobs/nightly once a day
+-- (see vercel.json): it resets the demo business and schedules regular visits, so plans are not scheduled here.
 
 create extension if not exists pg_cron;
 create extension if not exists pg_net;

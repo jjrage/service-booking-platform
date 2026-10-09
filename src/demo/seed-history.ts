@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/db/database.types";
-import { generateHistory, type HistoryInput, type PlanSpec } from "@/demo/history";
+import { generateHistory, type HistoryInput, type PlanSpec } from "./history";
 import { formatMoney } from "@/domain/money";
 
 type Admin = SupabaseClient<Database>;

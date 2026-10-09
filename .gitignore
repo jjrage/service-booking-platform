@@ -1,11 +1,11 @@
 # Internal notes and research (kept out of the public repository)
-CLAUDE.md
-docs/BRIEF.md
-docs/PLAN.md
-docs/SCHEMA.md
-docs/DEVLOG.md
-reports/
-research_notes/
+/CLAUDE.md
+/docs/BRIEF.md
+/docs/PLAN.md
+/docs/SCHEMA.md
+/docs/DEVLOG.md
+/reports/
+/research_notes/
 
 # Secrets
 .env
