@@ -173,6 +173,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "bookings_client_fkey";
+            columns: ["tenant_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "bookings_tenant_id_cancellation_version_id_fkey";
             columns: ["tenant_id", "cancellation_version_id"];
             isOneToOne: false;
@@ -220,6 +227,61 @@ export type Database = {
             isOneToOne: false;
             referencedRelation: "services";
             referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      client_billing: {
+        Row: {
+          card_brand: string | null;
+          card_exp_month: number | null;
+          card_exp_year: number | null;
+          card_last4: string | null;
+          client_id: string;
+          customer_ref: string;
+          payment_method_ref: string | null;
+          provider: Database["public"]["Enums"]["payment_provider"];
+          tenant_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          card_brand?: string | null;
+          card_exp_month?: number | null;
+          card_exp_year?: number | null;
+          card_last4?: string | null;
+          client_id: string;
+          customer_ref: string;
+          payment_method_ref?: string | null;
+          provider: Database["public"]["Enums"]["payment_provider"];
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          card_brand?: string | null;
+          card_exp_month?: number | null;
+          card_exp_year?: number | null;
+          card_last4?: string | null;
+          client_id?: string;
+          customer_ref?: string;
+          payment_method_ref?: string | null;
+          provider?: Database["public"]["Enums"]["payment_provider"];
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "client_billing_tenant_id_client_id_fkey";
+            columns: ["tenant_id", "client_id"];
+            isOneToOne: true;
+            referencedRelation: "clients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "client_billing_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
           },
         ];
       };
@@ -528,6 +590,111 @@ export type Database = {
           },
         ];
       };
+      payment_events: {
+        Row: {
+          event_id: string;
+          payment_ref: string | null;
+          provider: Database["public"]["Enums"]["payment_provider"];
+          received_at: string;
+          type: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          event_id: string;
+          payment_ref?: string | null;
+          provider: Database["public"]["Enums"]["payment_provider"];
+          received_at?: string;
+          type: string;
+        };
+        Update: {
+          event_id?: string;
+          payment_ref?: string | null;
+          provider?: Database["public"]["Enums"]["payment_provider"];
+          received_at?: string;
+          type?: string;
+        };
+        Relationships: [];
+      };
+      payments: {
+        Row: {
+          amount_cents: number;
+          booking_id: string;
+          client_id: string;
+          created_at: string;
+          currency: string;
+          failure_code: string | null;
+          failure_message: string | null;
+          id: string;
+          off_session: boolean;
+          provider: Database["public"]["Enums"]["payment_provider"];
+          provider_payment_id: string;
+          purpose: Database["public"]["Enums"]["payment_purpose"];
+          status: Database["public"]["Enums"]["payment_status"];
+          succeeded_at: string | null;
+          tenant_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          booking_id: string;
+          client_id: string;
+          created_at?: string;
+          currency?: string;
+          failure_code?: string | null;
+          failure_message?: string | null;
+          id?: string;
+          off_session?: boolean;
+          provider: Database["public"]["Enums"]["payment_provider"];
+          provider_payment_id: string;
+          purpose: Database["public"]["Enums"]["payment_purpose"];
+          status?: Database["public"]["Enums"]["payment_status"];
+          succeeded_at?: string | null;
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          amount_cents?: number;
+          booking_id?: string;
+          client_id?: string;
+          created_at?: string;
+          currency?: string;
+          failure_code?: string | null;
+          failure_message?: string | null;
+          id?: string;
+          off_session?: boolean;
+          provider?: Database["public"]["Enums"]["payment_provider"];
+          provider_payment_id?: string;
+          purpose?: Database["public"]["Enums"]["payment_purpose"];
+          status?: Database["public"]["Enums"]["payment_status"];
+          succeeded_at?: string | null;
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "payments_tenant_id_booking_id_fkey";
+            columns: ["tenant_id", "booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "payments_tenant_id_client_id_fkey";
+            columns: ["tenant_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "payments_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       properties: {
         Row: {
           access_notes: string | null;
@@ -679,6 +846,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: "recurring_plans_client_fkey";
+            columns: ["tenant_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
             foreignKeyName: "recurring_plans_tenant_id_client_id_property_id_fkey";
             columns: ["tenant_id", "client_id", "property_id"];
             isOneToOne: false;
@@ -711,6 +885,61 @@ export type Database = {
             columns: ["tenant_id", "service_id"];
             isOneToOne: false;
             referencedRelation: "services";
+            referencedColumns: ["tenant_id", "id"];
+          },
+        ];
+      };
+      refunds: {
+        Row: {
+          amount_cents: number;
+          created_at: string;
+          created_by: string | null;
+          id: string;
+          payment_id: string;
+          provider_refund_id: string | null;
+          reason: string | null;
+          status: Database["public"]["Enums"]["refund_status"];
+          tenant_id: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          amount_cents: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          payment_id: string;
+          provider_refund_id?: string | null;
+          reason?: string | null;
+          status?: Database["public"]["Enums"]["refund_status"];
+          tenant_id: string;
+          updated_at?: string;
+        };
+        Update: {
+          amount_cents?: number;
+          created_at?: string;
+          created_by?: string | null;
+          id?: string;
+          payment_id?: string;
+          provider_refund_id?: string | null;
+          reason?: string | null;
+          status?: Database["public"]["Enums"]["refund_status"];
+          tenant_id?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "refunds_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "refunds_tenant_id_payment_id_fkey";
+            columns: ["tenant_id", "payment_id"];
+            isOneToOne: false;
+            referencedRelation: "payments";
             referencedColumns: ["tenant_id", "id"];
           },
         ];
@@ -857,6 +1086,26 @@ export type Database = {
         };
         Returns: string;
       };
+      cmd_apply_payment_event: {
+        Args: {
+          p_card?: Json;
+          p_event_id: string;
+          p_event_type: string;
+          p_failure_code?: string;
+          p_failure_message?: string;
+          p_provider: Database["public"]["Enums"]["payment_provider"];
+          p_provider_payment_id: string;
+          p_status: Database["public"]["Enums"]["payment_status"];
+        };
+        Returns: {
+          applied: boolean;
+          booking_id: string;
+          booking_status: Database["public"]["Enums"]["booking_status"];
+          payment_id: string;
+          payment_status: Database["public"]["Enums"]["payment_status"];
+          purpose: Database["public"]["Enums"]["payment_purpose"];
+        }[];
+      };
       cmd_cancel_booking: {
         Args: {
           p_actor: string;
@@ -939,6 +1188,18 @@ export type Database = {
         Args: { p_actor: string; p_booking_id: string; p_crew_id: string };
         Returns: undefined;
       };
+      cmd_record_refund: {
+        Args: {
+          p_actor: string;
+          p_actor_kind: Database["public"]["Enums"]["actor_kind"];
+          p_amount_cents: number;
+          p_payment_id: string;
+          p_provider_refund_id: string;
+          p_reason: string;
+          p_status: Database["public"]["Enums"]["refund_status"];
+        };
+        Returns: string;
+      };
       cmd_release_hold: { Args: { p_hold_token: string }; Returns: boolean };
       cmd_remove_time_off: {
         Args: { p_actor: string; p_allocation_id: string };
@@ -958,6 +1219,27 @@ export type Database = {
           booking_id: string;
           crew_id: string;
         }[];
+      };
+      cmd_save_billing: {
+        Args: {
+          p_card?: Json;
+          p_client_id: string;
+          p_customer_ref: string;
+          p_provider: Database["public"]["Enums"]["payment_provider"];
+          p_tenant_id: string;
+        };
+        Returns: undefined;
+      };
+      cmd_start_payment: {
+        Args: {
+          p_amount_cents: number;
+          p_booking_id: string;
+          p_off_session?: boolean;
+          p_provider: Database["public"]["Enums"]["payment_provider"];
+          p_provider_payment_id: string;
+          p_purpose: Database["public"]["Enums"]["payment_purpose"];
+        };
+        Returns: string;
       };
       public_busy: {
         Args: { p_from: string; p_tenant_id: string; p_to: string };
@@ -980,7 +1262,10 @@ export type Database = {
         | "completed"
         | "no_access"
         | "expired"
-        | "payment_failed";
+        | "payment_failed"
+        | "payment_received"
+        | "refund_issued"
+        | "fee_charged";
       booking_mode: "instant" | "quote_request" | "class";
       booking_source: "web" | "portal" | "admin" | "ai" | "plan";
       booking_status:
@@ -992,8 +1277,23 @@ export type Database = {
         | "expired";
       client_source: "web" | "portal" | "admin" | "ai" | "import";
       member_role: "owner" | "dispatcher" | "cleaner";
+      payment_provider: "stripe" | "simulated";
+      payment_purpose:
+        | "deposit"
+        | "card_setup"
+        | "balance"
+        | "cancellation_fee"
+        | "no_access_fee";
+      payment_status:
+        | "requires_payment"
+        | "requires_action"
+        | "processing"
+        | "succeeded"
+        | "failed"
+        | "canceled";
       plan_frequency: "weekly" | "biweekly" | "monthly";
       plan_status: "active" | "paused" | "cancelled";
+      refund_status: "pending" | "succeeded" | "failed";
       rule_kind: "pricing" | "schedule" | "cancellation";
     };
     CompositeTypes: {
@@ -1138,6 +1438,9 @@ export const Constants = {
         "no_access",
         "expired",
         "payment_failed",
+        "payment_received",
+        "refund_issued",
+        "fee_charged",
       ],
       booking_mode: ["instant", "quote_request", "class"],
       booking_source: ["web", "portal", "admin", "ai", "plan"],
@@ -1151,8 +1454,25 @@ export const Constants = {
       ],
       client_source: ["web", "portal", "admin", "ai", "import"],
       member_role: ["owner", "dispatcher", "cleaner"],
+      payment_provider: ["stripe", "simulated"],
+      payment_purpose: [
+        "deposit",
+        "card_setup",
+        "balance",
+        "cancellation_fee",
+        "no_access_fee",
+      ],
+      payment_status: [
+        "requires_payment",
+        "requires_action",
+        "processing",
+        "succeeded",
+        "failed",
+        "canceled",
+      ],
       plan_frequency: ["weekly", "biweekly", "monthly"],
       plan_status: ["active", "paused", "cancelled"],
+      refund_status: ["pending", "succeeded", "failed"],
       rule_kind: ["pricing", "schedule", "cancellation"],
     },
   },

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 const parts = [
   "Online booking with an instant quote and a card deposit",
   "Client portal: visits, reschedule and cancel with a fee preview, receipts",
@@ -15,11 +17,19 @@ export default function Home() {
       <h1 className="text-3xl font-semibold tracking-tight">
         Booking &amp; Client Portal Platform
       </h1>
-      <ul className="list-disc space-y-2 pl-5 text-zinc-700 dark:text-zinc-300">
+      <ul className="list-disc space-y-2 pl-5 text-zinc-700">
         {parts.map((part) => (
           <li key={part}>{part}</li>
         ))}
       </ul>
+      <div className="flex flex-wrap gap-4 text-sm font-medium">
+        <Link href="/wrenfield" className="text-brand-700 underline">
+          Demo business: Wrenfield Home Cleaning
+        </Link>
+        <Link href="/wrenfield/race" className="text-brand-700 underline">
+          Race two bookings for one slot
+        </Link>
+      </div>
     </main>
   );
 }

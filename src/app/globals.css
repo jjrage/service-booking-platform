@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
+/*
+ * Light theme only: the demo is shown in screenshots and video, and one carefully tuned theme reads better
+ * than two approximate ones.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f8faf9;
+  --foreground: #18181b;
+  color-scheme: light;
 }
 
 @theme inline {
@@ -10,17 +15,25 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  /* Accent of the demo business (Wrenfield): a calm teal. */
+  --color-brand-50: #f0fdfa;
+  --color-brand-100: #ccfbf1;
+  --color-brand-200: #99f6e4;
+  --color-brand-500: #14b8a6;
+  --color-brand-600: #0d9488;
+  --color-brand-700: #0f766e;
+  --color-brand-800: #115e59;
+  --color-brand-900: #134e4a;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans);
+}
+
+/* Numbers in prices and times line up. */
+.tabular {
+  font-variant-numeric: tabular-nums;
 }
