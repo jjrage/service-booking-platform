@@ -20,13 +20,10 @@ export async function GET() {
 
 async function checkSupabase(): Promise<DependencyStatus> {
   try {
-    const response = await fetch(
-      `${publicEnv.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/health`,
-      {
-        headers: { apikey: publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
-        signal: AbortSignal.timeout(3_000),
-      },
-    );
+    const response = await fetch(`${publicEnv.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/health`, {
+      headers: { apikey: publicEnv.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY },
+      signal: AbortSignal.timeout(3_000),
+    });
     return response.ok ? "ok" : "unreachable";
   } catch {
     return "unreachable";

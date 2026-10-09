@@ -10,9 +10,7 @@ const inputSchema = z.object({
   contenders: z.union([z.literal(2), z.literal(10), z.literal(20)]),
 });
 
-export async function raceAction(
-  input: z.input<typeof inputSchema>,
-): Promise<RaceResult | null> {
+export async function raceAction(input: z.input<typeof inputSchema>): Promise<RaceResult | null> {
   const { slug, contenders } = inputSchema.parse(input);
   const catalog = await getCatalog(slug);
   if (!catalog) return null;

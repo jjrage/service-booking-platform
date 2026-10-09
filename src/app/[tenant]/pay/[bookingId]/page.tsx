@@ -18,10 +18,7 @@ export const metadata: Metadata = {
   robots: { index: false },
 };
 
-export default function PayPage({
-  params,
-  searchParams,
-}: PageProps<"/[tenant]/pay/[bookingId]">) {
+export default function PayPage({ params, searchParams }: PageProps<"/[tenant]/pay/[bookingId]">) {
   return (
     <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6">
       <Suspense fallback={<Skeleton className="h-96" />}>
@@ -40,8 +37,7 @@ async function Checkout({
   const token = typeof t === "string" ? t : undefined;
 
   const booking =
-    /^[0-9a-f-]{36}$/.test(bookingId) &&
-    verifyBookingAccessToken(bookingId, token)
+    /^[0-9a-f-]{36}$/.test(bookingId) && verifyBookingAccessToken(bookingId, token)
       ? await loadGuestBooking(bookingId)
       : null;
   if (!booking || booking.tenantSlug !== tenant) {
@@ -72,9 +68,7 @@ async function Checkout({
       <div className="space-y-6">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            {plan
-              ? "Save your card"
-              : `Pay the ${money(booking.depositCents)} deposit`}
+            {plan ? "Save your card" : `Pay the ${money(booking.depositCents)} deposit`}
           </h1>
           <p className="mt-1 text-zinc-600">
             {plan
@@ -87,12 +81,8 @@ async function Checkout({
           bookingId={booking.id}
           token={token!}
           session={session}
-          stripePublishableKey={
-            publicEnv.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null
-          }
-          amountLabel={
-            plan ? "Save card" : `Pay ${money(booking.depositCents)}`
-          }
+          stripePublishableKey={publicEnv.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? null}
+          amountLabel={plan ? "Save card" : `Pay ${money(booking.depositCents)}`}
           returnUrl={bookingUrl}
           paymentDueBy={booking.paymentDueBy}
         />
@@ -102,9 +92,7 @@ async function Checkout({
         <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
           Booking #{booking.number}
         </p>
-        <p className="mt-2 font-semibold text-zinc-900">
-          {booking.serviceName}
-        </p>
+        <p className="mt-2 font-semibold text-zinc-900">{booking.serviceName}</p>
         <p className="text-zinc-600">
           {formatDate(booking.date, "long")}
           <br />
@@ -113,25 +101,19 @@ async function Checkout({
         <p className="mt-3 text-zinc-600">{booking.address}</p>
         <dl className="mt-4 space-y-1 border-t border-zinc-100 pt-3">
           <div className="flex justify-between">
-            <dt className="text-zinc-500">
-              {plan ? "First visit" : "Visit total"}
-            </dt>
+            <dt className="text-zinc-500">{plan ? "First visit" : "Visit total"}</dt>
             <dd className="tabular font-medium">{money(booking.totalCents)}</dd>
           </div>
           {plan && booking.recurringTotalCents !== null && (
             <div className="flex justify-between">
               <dt className="text-zinc-500">Regular visits</dt>
-              <dd className="tabular font-medium">
-                {money(booking.recurringTotalCents)}
-              </dd>
+              <dd className="tabular font-medium">{money(booking.recurringTotalCents)}</dd>
             </div>
           )}
           {!plan && (
             <div className="flex justify-between">
               <dt className="text-zinc-500">Due today</dt>
-              <dd className="tabular font-semibold text-zinc-900">
-                {money(booking.depositCents)}
-              </dd>
+              <dd className="tabular font-semibold text-zinc-900">{money(booking.depositCents)}</dd>
             </div>
           )}
         </dl>

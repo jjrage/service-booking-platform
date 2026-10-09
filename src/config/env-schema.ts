@@ -12,10 +12,7 @@ import { z } from "zod";
 
 /** An unset variable and an empty one (`KEY=` in a .env file) both mean "not configured". */
 function optional<T extends z.ZodType>(schema: T) {
-  return z.preprocess(
-    (value) => (value === "" ? undefined : value),
-    schema.optional(),
-  );
+  return z.preprocess((value) => (value === "" ? undefined : value), schema.optional());
 }
 
 export const publicEnvSchema = z.object({
@@ -43,6 +40,8 @@ export const serverEnvSchema = z.object({
   ANTHROPIC_MODEL: optional(z.string().min(1)),
   // Shared secret for the scheduled-job endpoints (pg_cron and Vercel cron send it).
   CRON_SECRET: optional(z.string().min(16)),
+  // Password of the demo accounts behind the "Log in as …" buttons. Local databases fall back to a fixed one.
+  DEMO_USER_PASSWORD: optional(z.string().min(8)),
 });
 
 export type PublicEnv = z.infer<typeof publicEnvSchema>;

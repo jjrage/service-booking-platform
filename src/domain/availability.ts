@@ -34,8 +34,7 @@ export type WindowOption = {
   status: "available" | "full" | "too_long";
 };
 
-export type DayStatus =
-  "open" | "closed" | "holiday" | "too_soon" | "beyond_horizon";
+export type DayStatus = "open" | "closed" | "holiday" | "too_soon" | "beyond_horizon";
 
 export type DayOption = {
   date: LocalDate;
@@ -66,8 +65,7 @@ export function bookableDates(
   now: Instant,
 ): { first: LocalDate; last: LocalDate } {
   const local = toLocal(now, timeZone);
-  const daysAhead =
-    minutesOfDay(local.time) < minutesOfDay(rules.next_day_cutoff) ? 1 : 2;
+  const daysAhead = minutesOfDay(local.time) < minutesOfDay(rules.next_day_cutoff) ? 1 : 2;
   return {
     first: addDays(local.date, daysAhead),
     last: addDays(local.date, rules.horizon_days),
@@ -118,12 +116,7 @@ export function availableWindows(query: AvailabilityQuery): DayOption[] {
 
       const start = toInstant(date, localStart, timeZone);
       const end = toInstant(date, localEnd, timeZone);
-      const busy = occupancy(
-        start,
-        end,
-        query.durationMinutes,
-        rules.travel_buffer_minutes,
-      );
+      const busy = occupancy(start, end, query.durationMinutes, rules.travel_buffer_minutes);
       const option: WindowOption = {
         localStart,
         localEnd,
@@ -137,10 +130,7 @@ export function availableWindows(query: AvailabilityQuery): DayOption[] {
       day.windows.push(option);
 
       // A visit that starts at the end of its window must still finish by closing time.
-      if (
-        minutesOfDay(localEnd) + query.durationMinutes >
-        minutesOfDay(close)
-      ) {
+      if (minutesOfDay(localEnd) + query.durationMinutes > minutesOfDay(close)) {
         option.status = "too_long";
         continue;
       }
@@ -148,15 +138,11 @@ export function availableWindows(query: AvailabilityQuery): DayOption[] {
       option.freeCrewIds = query.crewIds
         .filter(
           (crewId) =>
-            !query.busy.some(
-              (interval) =>
-                interval.crewId === crewId && overlaps(interval, busy),
-            ),
+            !query.busy.some((interval) => interval.crewId === crewId && overlaps(interval, busy)),
         )
         .sort(
           (a, b) =>
-            Number(b === query.preferredCrewId) -
-              Number(a === query.preferredCrewId) ||
+            Number(b === query.preferredCrewId) - Number(a === query.preferredCrewId) ||
             (load.get(a) ?? 0) - (load.get(b) ?? 0) ||
             query.crewIds.indexOf(a) - query.crewIds.indexOf(b),
         );
@@ -185,19 +171,13 @@ export function nextAvailable(
   limit: number,
 ): (WindowOption & { date: LocalDate })[] {
   return days
-    .flatMap((day) =>
-      day.windows.map((window) => ({ ...window, date: day.date })),
-    )
+    .flatMap((day) => day.windows.map((window) => ({ ...window, date: day.date })))
     .filter((window) => window.status === "available")
     .slice(0, limit);
 }
 
 /** Busy intervals per crew that start on a local date: spreads new work across crews. */
-function dailyLoad(
-  busy: BusyInterval[],
-  date: LocalDate,
-  timeZone: string,
-): Map<string, number> {
+function dailyLoad(busy: BusyInterval[], date: LocalDate, timeZone: string): Map<string, number> {
   const load = new Map<string, number>();
   for (const interval of busy) {
     if (toLocal(interval.start, timeZone).date === date) {

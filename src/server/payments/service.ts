@@ -5,12 +5,7 @@ import { nullable } from "../db/args";
 import { CommandError, ensureOk, unwrap } from "../db/errors";
 import { paymentProvider } from "./index";
 import { simulateCheckout, type SimulatedTestCard } from "./simulated";
-import type {
-  CheckoutSession,
-  PaymentPurpose,
-  PaymentStatus,
-  ProviderEvent,
-} from "./types";
+import type { CheckoutSession, PaymentPurpose, PaymentStatus, ProviderEvent } from "./types";
 
 /**
  * Payment use cases on top of the provider: the booking checkout (deposit or saved card), provider events,
@@ -89,20 +84,14 @@ async function customerFor(booking: Awaited<ReturnType<typeof loadBooking>>) {
  * Starts (or resumes, after a reload or a declined card) the payment that confirms a booking: a deposit for a
  * one-time visit, or saving the card for a plan visit.
  */
-export async function startBookingCheckout(
-  bookingId: string,
-): Promise<CheckoutSession> {
+export async function startBookingCheckout(bookingId: string): Promise<CheckoutSession> {
   const provider = paymentProvider();
   const booking = await loadBooking(bookingId);
   if (booking.status !== "pending_payment") {
-    throw new CommandError(
-      "invalid_status",
-      `Booking #${booking.number} is ${booking.status}`,
-    );
+    throw new CommandError("invalid_status", `Booking #${booking.number} is ${booking.status}`);
   }
 
-  const purpose: PaymentPurpose =
-    booking.deposit_cents > 0 ? "deposit" : "card_setup";
+  const purpose: PaymentPurpose = booking.deposit_cents > 0 ? "deposit" : "card_setup";
   const mode = purpose === "card_setup" ? "setup" : "payment";
 
   const { data: open } = await adminDb()
@@ -153,9 +142,7 @@ export async function startBookingCheckout(
 }
 
 /** Applies a provider event exactly once (see cmd_apply_payment_event). */
-export async function applyPaymentEvent(
-  event: ProviderEvent,
-): Promise<AppliedEvent> {
+export async function applyPaymentEvent(event: ProviderEvent): Promise<AppliedEvent> {
   const rows = unwrap(
     await adminDb().rpc("cmd_apply_payment_event", {
       p_provider: event.provider,
@@ -226,10 +213,7 @@ export type ChargeResult = {
  */
 export async function chargeSavedCard(input: {
   bookingId: string;
-  purpose: Extract<
-    PaymentPurpose,
-    "balance" | "cancellation_fee" | "no_access_fee"
-  >;
+  purpose: Extract<PaymentPurpose, "balance" | "cancellation_fee" | "no_access_fee">;
   amountCents: number;
   description: string;
 }): Promise<ChargeResult> {
@@ -327,27 +311,18 @@ export async function refundPayment(input: {
     );
   }
   if (payment.status !== "succeeded") {
-    throw new CommandError(
-      "invalid_status",
-      "Only a succeeded payment can be refunded",
-    );
+    throw new CommandError("invalid_status", "Only a succeeded payment can be refunded");
   }
 
   // Checked again by cmd_record_refund under a lock; checking first avoids asking the provider in vain.
   const previous = unwrap(
-    await db
-      .from("refunds")
-      .select("amount_cents, status")
-      .eq("payment_id", payment.id),
+    await db.from("refunds").select("amount_cents, status").eq("payment_id", payment.id),
     "load refunds",
   );
   const refunded = previous
     .filter((r) => r.status !== "failed")
     .reduce((sum, r) => sum + r.amount_cents, 0);
-  if (
-    input.amountCents <= 0 ||
-    refunded + input.amountCents > payment.amount_cents
-  ) {
+  if (input.amountCents <= 0 || refunded + input.amountCents > payment.amount_cents) {
     throw new CommandError(
       "invalid_input",
       `At most ${payment.amount_cents - refunded} cents of this payment can still be refunded`,

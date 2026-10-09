@@ -28,9 +28,7 @@ describe("cancellationFee()", () => {
   it("charges the same for a reschedule and says so", () => {
     const fee = cancellationFee(rules, booking, "reschedule", hoursBefore(30));
     expect(fee.feeCents).toBe(4000);
-    expect(fee.explanation).toBe(
-      "Rescheduling within 48 hours of the arrival window costs $40.",
-    );
+    expect(fee.explanation).toBe("Rescheduling within 48 hours of the arrival window costs $40.");
   });
 
   it("charges half the visit for a lockout regardless of timing", () => {
@@ -50,10 +48,9 @@ describe("cancellationFee()", () => {
 
   it("rejects rules whose late period is longer than the free period", () => {
     expect(cancellationRulesSchema.safeParse(rules).success).toBe(true);
-    expect(
-      cancellationRulesSchema.safeParse({ ...rules, late_within_hours: 72 })
-        .success,
-    ).toBe(false);
+    expect(cancellationRulesSchema.safeParse({ ...rules, late_within_hours: 72 }).success).toBe(
+      false,
+    );
   });
 });
 

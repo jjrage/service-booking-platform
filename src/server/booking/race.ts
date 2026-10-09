@@ -6,11 +6,7 @@ import { addDays, toLocal } from "@/domain/time";
 import type { Catalog } from "../catalog";
 import { adminDb } from "../db/admin";
 import { toRange } from "../db/ranges";
-import {
-  alternativesFrom,
-  windowsFor,
-  type WindowChoice,
-} from "./availability";
+import { alternativesFrom, windowsFor, type WindowChoice } from "./availability";
 import { releaseHold } from "./hold";
 
 export type RaceContender = {
@@ -48,11 +44,7 @@ export async function raceForWindow(
   if (!target) return null;
 
   const crewId = target.freeCrewIds[0]!;
-  const { data: crew } = await adminDb()
-    .from("crews")
-    .select("name")
-    .eq("id", crewId)
-    .single();
+  const { data: crew } = await adminDb().from("crews").select("name").eq("id", crewId).single();
   const busy = toRange(target.busyStart, target.busyEnd);
 
   const attempts = await Promise.all(
@@ -74,9 +66,7 @@ export async function raceForWindow(
     }),
   );
 
-  await Promise.all(
-    attempts.filter((a) => a.token).map((a) => releaseHold(a.token!)),
-  );
+  await Promise.all(attempts.filter((a) => a.token).map((a) => releaseHold(a.token!)));
 
   const window: WindowChoice = {
     date: target.date,
@@ -90,9 +80,7 @@ export async function raceForWindow(
     window,
     crewName: crew?.name ?? "the crew",
     contenders: attempts.map(({ token: _token, ...rest }) => rest),
-    alternatives: (
-      await alternativesFrom(catalog, target.date, durationMinutes, 4)
-    ).filter(
+    alternatives: (await alternativesFrom(catalog, target.date, durationMinutes, 4)).filter(
       (w) => !(w.date === target.date && w.localStart === target.localStart),
     ),
   };

@@ -11,9 +11,7 @@ export function toRange(start: Instant, end: Instant): string {
  */
 export function parseRange(value: unknown): { start: Instant; end: Instant } {
   const match =
-    typeof value === "string"
-      ? /^\[\s*"?([^",]+)"?\s*,\s*"?([^",)]+)"?\s*\)$/.exec(value)
-      : null;
+    typeof value === "string" ? /^\[\s*"?([^",]+)"?\s*,\s*"?([^",)]+)"?\s*\)$/.exec(value) : null;
   if (!match) {
     throw new Error(`Not a bounded [start, end) range: ${String(value)}`);
   }

@@ -17,14 +17,8 @@ describe("parseEnv", () => {
 
   it("lists every missing or malformed variable in one error", () => {
     expect(() =>
-      parseEnv(
-        publicEnvSchema,
-        { NEXT_PUBLIC_SUPABASE_URL: "not-a-url" },
-        "public",
-      ),
-    ).toThrowError(
-      /NEXT_PUBLIC_SUPABASE_URL[\s\S]*NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/,
-    );
+      parseEnv(publicEnvSchema, { NEXT_PUBLIC_SUPABASE_URL: "not-a-url" }, "public"),
+    ).toThrowError(/NEXT_PUBLIC_SUPABASE_URL[\s\S]*NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
   });
 
   it("does not leak unrelated variables into the parsed result", () => {
@@ -46,15 +40,10 @@ describe("parseEnv", () => {
   it("treats empty integration keys as not configured and refuses live Stripe keys", () => {
     const base = { SUPABASE_SECRET_KEY: "s", APP_SECRET: "x".repeat(32) };
     expect(
-      parseEnv(serverEnvSchema, { ...base, STRIPE_SECRET_KEY: "" }, "server")
-        .STRIPE_SECRET_KEY,
+      parseEnv(serverEnvSchema, { ...base, STRIPE_SECRET_KEY: "" }, "server").STRIPE_SECRET_KEY,
     ).toBeUndefined();
     expect(() =>
-      parseEnv(
-        serverEnvSchema,
-        { ...base, STRIPE_SECRET_KEY: "sk_live_123" },
-        "server",
-      ),
+      parseEnv(serverEnvSchema, { ...base, STRIPE_SECRET_KEY: "sk_live_123" }, "server"),
     ).toThrowError(/test-mode/);
   });
 });

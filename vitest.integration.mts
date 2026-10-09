@@ -8,9 +8,7 @@ export default defineConfig({
     tsconfigPaths: true,
     alias: {
       // Server modules are imported directly here, outside a Next.js build.
-      "server-only": fileURLToPath(
-        new URL("./tests/integration/server-only.ts", import.meta.url),
-      ),
+      "server-only": fileURLToPath(new URL("./tests/integration/server-only.ts", import.meta.url)),
     },
   },
   test: {

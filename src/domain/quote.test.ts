@@ -141,15 +141,13 @@ describe("quote()", () => {
   });
 
   it("refuses what cannot be booked instantly", () => {
-    expect(
-      errorCode({ service: "standard", home: baseHome, zip: "90210" }),
-    ).toBe("out_of_area");
-    expect(
-      errorCode({ service: "post_renovation", home: baseHome, zip: "27601" }),
-    ).toBe("no_instant_price");
-    expect(
-      errorCode({ service: "move_in_out", home: baseHome, zip: "27601" }),
-    ).toBe("empty_home_required");
+    expect(errorCode({ service: "standard", home: baseHome, zip: "90210" })).toBe("out_of_area");
+    expect(errorCode({ service: "post_renovation", home: baseHome, zip: "27601" })).toBe(
+      "no_instant_price",
+    );
+    expect(errorCode({ service: "move_in_out", home: baseHome, zip: "27601" })).toBe(
+      "empty_home_required",
+    );
     expect(
       errorCode({
         service: "deep",

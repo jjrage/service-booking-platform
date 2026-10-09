@@ -8,11 +8,7 @@ const trimmed = (max: number) => z.string().trim().max(max);
 
 export const contactSchema = z.object({
   fullName: trimmed(120).min(2, "Enter your full name"),
-  email: z
-    .string()
-    .trim()
-    .toLowerCase()
-    .pipe(z.email("Enter a valid e-mail address")),
+  email: z.string().trim().toLowerCase().pipe(z.email("Enter a valid e-mail address")),
   phone: z
     .string()
     .trim()

@@ -7,10 +7,7 @@ import { Skeleton } from "@/ui/feedback";
 
 import { requireCatalog } from "./catalog";
 
-export default function TenantLayout({
-  children,
-  params,
-}: LayoutProps<"/[tenant]">) {
+export default function TenantLayout({ children, params }: LayoutProps<"/[tenant]">) {
   return (
     <div className="flex min-h-full flex-1 flex-col">
       <DemoBanner />
@@ -44,9 +41,7 @@ async function TenantNav({ params }: { params: Promise<{ tenant: string }> }) {
         <span className="flex size-8 items-center justify-center rounded-lg bg-brand-700 text-sm font-bold text-white">
           {tenant.name.charAt(0)}
         </span>
-        <span className="font-semibold tracking-tight text-zinc-900">
-          {tenant.name}
-        </span>
+        <span className="font-semibold tracking-tight text-zinc-900">{tenant.name}</span>
       </Link>
       <nav className="flex items-center gap-1 text-sm">
         <Link
@@ -55,10 +50,7 @@ async function TenantNav({ params }: { params: Promise<{ tenant: string }> }) {
         >
           Client portal
         </Link>
-        <Link
-          href={`/${tenant.slug}/book`}
-          className={buttonClasses("primary", "sm")}
-        >
+        <Link href={`/${tenant.slug}/book`} className={buttonClasses("primary", "sm")}>
           Book online
         </Link>
       </nav>
@@ -66,11 +58,7 @@ async function TenantNav({ params }: { params: Promise<{ tenant: string }> }) {
   );
 }
 
-async function TenantContact({
-  params,
-}: {
-  params: Promise<{ tenant: string }>;
-}) {
+async function TenantContact({ params }: { params: Promise<{ tenant: string }> }) {
   const { tenant } = await requireCatalog(params);
   return (
     <span>

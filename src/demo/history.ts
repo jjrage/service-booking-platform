@@ -1,11 +1,7 @@
 import { occupancy } from "@/domain/availability";
 import { cancellationFee, settleFee } from "@/domain/cancellation";
 import { quote, type Quote, type QuoteRequest } from "@/domain/quote";
-import type {
-  CancellationRules,
-  PricingRules,
-  ScheduleRules,
-} from "@/domain/rules";
+import type { CancellationRules, PricingRules, ScheduleRules } from "@/domain/rules";
 import { expandSeries, type PlanFrequency } from "@/domain/series";
 import {
   addDays,
@@ -98,8 +94,7 @@ export type HistoryBooking = {
 
 export type HistoryPayment = {
   bookingIndex: number;
-  purpose:
-    "deposit" | "card_setup" | "balance" | "cancellation_fee" | "no_access_fee";
+  purpose: "deposit" | "card_setup" | "balance" | "cancellation_fee" | "no_access_fee";
   amountCents: number;
   status: "succeeded" | "failed";
   offSession: boolean;
@@ -144,9 +139,7 @@ function random(seed: number) {
 }
 
 function uuidFrom(rand: () => number): string {
-  const hex = Array.from({ length: 32 }, () =>
-    Math.floor(rand() * 16).toString(16),
-  );
+  const hex = Array.from({ length: 32 }, () => Math.floor(rand() * 16).toString(16));
   hex[12] = "4";
   hex[16] = ((parseInt(hex[16]!, 16) & 0x3) | 0x8).toString(16);
   const s = hex.join("");
@@ -162,8 +155,7 @@ export function generateHistory(
   const { pricing, schedule, cancellation } = input.rules;
   const tz = input.timeZone;
   const crewId = (key: string) => input.crews.find((c) => c.key === key)!.id;
-  const clientByName = (name: string) =>
-    input.clients.find((c) => c.fullName === name)!;
+  const clientByName = (name: string) => input.clients.find((c) => c.fullName === name)!;
   const versions = { pricing: 1, schedule: 1, cancellation: 1 };
   const windowEndOf = (start: string) =>
     schedule.rules.arrival_windows.find(([s]) => s === start)![1];
@@ -193,9 +185,7 @@ export function generateHistory(
 
   /** Nothing in the history can have happened after "now". */
   function notAfterNow(at: Instant): Instant {
-    return at > input.now
-      ? addMinutes(input.now, -30 - Math.floor(rand() * 60 * 24 * 3))
-      : at;
+    return at > input.now ? addMinutes(input.now, -30 - Math.floor(rand() * 60 * 24 * 3)) : at;
   }
 
   function statusFor(date: LocalDate): Status {
@@ -214,14 +204,10 @@ export function generateHistory(
     plan: { index: number; occurrence: LocalDate } | null,
     visit: "first" | "recurring" = "first",
   ): number | null {
-    const price =
-      visit === "recurring" && q.recurringVisit
-        ? q.recurringVisit
-        : q.firstVisit;
+    const price = visit === "recurring" && q.recurringVisit ? q.recurringVisit : q.firstVisit;
     const end = windowEndOf(start);
     const [, close] = schedule.rules.business_hours[weekdayOf(date)]!;
-    if (minutesOfDay(end) + price.durationMinutes > minutesOfDay(close))
-      return null;
+    if (minutesOfDay(end) + price.durationMinutes > minutesOfDay(close)) return null;
     if ((freeAt.get(key(crew, date)) ?? 0) > minutesOfDay(start)) return null;
 
     const arrivalStart = toInstant(date, start, tz);
@@ -234,9 +220,7 @@ export function generateHistory(
     );
     freeAt.set(
       key(crew, date),
-      minutesOfDay(end) +
-        price.durationMinutes +
-        schedule.rules.travel_buffer_minutes,
+      minutesOfDay(end) + price.durationMinutes + schedule.rules.travel_buffer_minutes,
     );
 
     const status = statusFor(date);
@@ -255,10 +239,7 @@ export function generateHistory(
     if (status === "cancelled") {
       const late = date < input.today && rand() < 0.5;
       cancelledAt = notAfterNow(
-        addMinutes(
-          arrivalStart,
-          -60 * (late ? 20 : 50 + Math.floor(rand() * 72)),
-        ),
+        addMinutes(arrivalStart, -60 * (late ? 20 : 50 + Math.floor(rand() * 72))),
       );
       if (cancelledAt < createdAt) cancelledAt = addMinutes(createdAt, 60);
       feeCents = cancellationFee(
@@ -319,11 +300,9 @@ export function generateHistory(
       recentlyCleaned: spec.recentlyCleaned,
     };
     const priced = quote(pricing.rules, request);
-    if (!priced.ok)
-      throw new Error(`plan for ${spec.client}: ${priced.error.message}`);
+    if (!priced.ok) throw new Error(`plan for ${spec.client}: ${priced.error.message}`);
     let firstDate = addDays(input.today, -PAST_DAYS);
-    while (weekdayOf(firstDate) !== spec.weekday)
-      firstDate = addDays(firstDate, 1);
+    while (weekdayOf(firstDate) !== spec.weekday) firstDate = addDays(firstDate, 1);
 
     const plan: HistoryPlan = {
       spec,
@@ -373,9 +352,7 @@ export function generateHistory(
         if (placed === null) return;
         const booking = bookings[placed]!;
         booking.createdAt =
-          n === 0
-            ? plan.createdAt
-            : notAfterNow(addMinutes(booking.arrivalStart, -60 * 24 * 30));
+          n === 0 ? plan.createdAt : notAfterNow(addMinutes(booking.arrivalStart, -60 * 24 * 30));
         booking.confirmedAt = addMinutes(booking.createdAt, 2);
         if (n === 0) {
           payments.push({
@@ -391,9 +368,7 @@ export function generateHistory(
   });
 
   // One-time visits fill the remaining crew time.
-  const oneTimeClients = input.clients.filter(
-    (c) => !plans.some((p) => p.client === c.fullName),
-  );
+  const oneTimeClients = input.clients.filter((c) => !plans.some((p) => p.client === c.fullName));
   const crews = input.crews.map((c) => c.id);
   let next = 0;
   const sources: Source[] = [
@@ -418,8 +393,7 @@ export function generateHistory(
         if (rand() > fillRate) continue;
         const client = oneTimeClients[next % oneTimeClients.length]!;
         const roll = rand();
-        const service =
-          roll < 0.65 ? "standard" : roll < 0.9 ? "deep" : "move_in_out";
+        const service = roll < 0.65 ? "standard" : roll < 0.9 ? "deep" : "move_in_out";
         const addons: Record<string, number> = {};
         if (rand() < 0.3) addons.fridge = 1;
         if (rand() < 0.2) addons.oven = 1;
@@ -462,10 +436,7 @@ export function generateHistory(
   const badCardIds = badCardClients.map((name) => clientByName(name).id);
   const lastBadCardVisit = new Map<string, number>();
   bookings.forEach((booking, index) => {
-    if (
-      booking.status === "completed" &&
-      badCardIds.includes(booking.clientId)
-    ) {
+    if (booking.status === "completed" && badCardIds.includes(booking.clientId)) {
       lastBadCardVisit.set(booking.clientId, index);
     }
   });
@@ -483,25 +454,17 @@ export function generateHistory(
         offSession: true,
         at: booking.completedAt!,
       });
-    } else if (
-      booking.status === "cancelled" ||
-      booking.status === "no_access"
-    ) {
+    } else if (booking.status === "cancelled" || booking.status === "no_access") {
       const { refundCents, chargeCents } = settleFee(booking.feeCents, paid);
       const at = booking.cancelledAt ?? booking.completedAt!;
       if (refundCents > 0) {
-        const deposit = payments.find(
-          (p) => p.bookingIndex === index && p.purpose === "deposit",
-        );
+        const deposit = payments.find((p) => p.bookingIndex === index && p.purpose === "deposit");
         if (deposit) deposit.refundCents = refundCents;
       }
       if (chargeCents > 0) {
         payments.push({
           bookingIndex: index,
-          purpose:
-            booking.status === "no_access"
-              ? "no_access_fee"
-              : "cancellation_fee",
+          purpose: booking.status === "no_access" ? "no_access_fee" : "cancellation_fee",
           amountCents: chargeCents,
           status: "succeeded",
           offSession: true,

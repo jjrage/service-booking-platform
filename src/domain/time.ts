@@ -26,11 +26,7 @@ const weekdayByIsoNumber: Record<number, Weekday> = {
 };
 
 /** The instant at which the business's clocks show `time` on `date`. */
-export function toInstant(
-  date: LocalDate,
-  time: LocalTime,
-  timeZone: string,
-): Instant {
+export function toInstant(date: LocalDate, time: LocalTime, timeZone: string): Instant {
   return Temporal.PlainDate.from(date)
     .toZonedDateTime({ timeZone, plainTime: Temporal.PlainTime.from(time) })
     .toInstant()
@@ -42,16 +38,11 @@ export function addMinutes(instant: Instant, minutes: number): Instant {
 }
 
 export function minutesBetween(from: Instant, to: Instant): number {
-  return Temporal.Instant.from(to)
-    .since(Temporal.Instant.from(from))
-    .total("minutes");
+  return Temporal.Instant.from(to).since(Temporal.Instant.from(from)).total("minutes");
 }
 
 export function compareInstants(a: Instant, b: Instant): number {
-  return Temporal.Instant.compare(
-    Temporal.Instant.from(a),
-    Temporal.Instant.from(b),
-  );
+  return Temporal.Instant.compare(Temporal.Instant.from(a), Temporal.Instant.from(b));
 }
 
 /** Normalizes any ISO or Postgres timestamp ("2026-11-09 13:00:00+00") to the canonical UTC form. */
@@ -81,9 +72,7 @@ export function addDays(date: LocalDate, days: number): LocalDate {
 }
 
 export function daysBetween(from: LocalDate, to: LocalDate): number {
-  return Temporal.PlainDate.from(to)
-    .since(Temporal.PlainDate.from(from))
-    .total("days");
+  return Temporal.PlainDate.from(to).since(Temporal.PlainDate.from(from)).total("days");
 }
 
 /** Minutes since midnight for an "HH:MM" local time. */
@@ -97,7 +86,5 @@ export function overlaps(
   a: { start: Instant; end: Instant },
   b: { start: Instant; end: Instant },
 ): boolean {
-  return (
-    compareInstants(a.start, b.end) < 0 && compareInstants(b.start, a.end) < 0
-  );
+  return compareInstants(a.start, b.end) < 0 && compareInstants(b.start, a.end) < 0;
 }

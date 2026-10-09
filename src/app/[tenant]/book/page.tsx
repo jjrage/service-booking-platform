@@ -8,10 +8,7 @@ import { BookingWizard } from "./booking-wizard";
 
 export const metadata: Metadata = { title: "Book a cleaning" };
 
-export default function BookPage({
-  params,
-  searchParams,
-}: PageProps<"/[tenant]/book">) {
+export default function BookPage({ params, searchParams }: PageProps<"/[tenant]/book">) {
   return (
     <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6 sm:py-10">
       <Suspense fallback={<WizardSkeleton />}>
@@ -39,14 +36,12 @@ async function Wizard({
       tenantName={catalog.tenant.name}
       phone={catalog.tenant.phone}
       currency={catalog.tenant.currency}
-      services={catalog.services.map(
-        ({ code, name, description, bookingMode }) => ({
-          code,
-          name,
-          description,
-          bookingMode,
-        }),
-      )}
+      services={catalog.services.map(({ code, name, description, bookingMode }) => ({
+        code,
+        name,
+        description,
+        bookingMode,
+      }))}
       pricing={catalog.pricing.rules}
       holdMinutes={catalog.schedule.rules.hold_minutes}
       initialService={initialService ?? ""}

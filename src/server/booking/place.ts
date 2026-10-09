@@ -1,10 +1,7 @@
 import "server-only";
 
 import { occupancy } from "@/domain/availability";
-import {
-  bookingRequestSchema,
-  type BookingRequestInput,
-} from "@/domain/booking-request";
+import { bookingRequestSchema, type BookingRequestInput } from "@/domain/booking-request";
 import { quote, type Quote } from "@/domain/quote";
 import { addMinutes, minutesOfDay, toLocal } from "@/domain/time";
 
@@ -49,14 +46,9 @@ export async function placeHeldBooking(
   const q = priced.quote;
 
   const service = catalog.services.find((s) => s.code === q.firstVisit.service);
-  const requested = catalog.services.find(
-    (s) => s.code === request.quote.service,
-  );
+  const requested = catalog.services.find((s) => s.code === request.quote.service);
   if (!service || requested?.bookingMode !== "instant") {
-    throw new CommandError(
-      "invalid_input",
-      "This service cannot be booked online",
-    );
+    throw new CommandError("invalid_input", "This service cannot be booked online");
   }
 
   const db = adminDb();
@@ -75,24 +67,13 @@ export async function placeHeldBooking(
   const held = parseRange(hold.data.busy);
   const local = toLocal(held.start, catalog.tenant.timezone);
   const schedule = catalog.schedule.rules;
-  const arrival = schedule.arrival_windows.find(
-    ([start]) => start === local.time,
-  );
+  const arrival = schedule.arrival_windows.find(([start]) => start === local.time);
   const hours = schedule.business_hours[local.weekday];
   if (!arrival || !hours) {
-    throw new CommandError(
-      "invalid_input",
-      "The held time is not an arrival window",
-    );
+    throw new CommandError("invalid_input", "The held time is not an arrival window");
   }
-  const windowEnd = addMinutes(
-    held.start,
-    minutesOfDay(arrival[1]) - minutesOfDay(arrival[0]),
-  );
-  if (
-    minutesOfDay(arrival[1]) + q.firstVisit.durationMinutes >
-    minutesOfDay(hours[1])
-  ) {
+  const windowEnd = addMinutes(held.start, minutesOfDay(arrival[1]) - minutesOfDay(arrival[0]));
+  if (minutesOfDay(arrival[1]) + q.firstVisit.durationMinutes > minutesOfDay(hours[1])) {
     throw new CommandError(
       "invalid_input",
       "This visit is too long for the chosen arrival window; pick an earlier one",
@@ -104,10 +85,7 @@ export async function placeHeldBooking(
     q.firstVisit.durationMinutes,
     schedule.travel_buffer_minutes,
   );
-  const paymentDueBy = addMinutes(
-    new Date().toISOString(),
-    schedule.payment_window_minutes,
-  );
+  const paymentDueBy = addMinutes(new Date().toISOString(), schedule.payment_window_minutes);
 
   const [row] = unwrap(
     await db.rpc("cmd_create_booking", {

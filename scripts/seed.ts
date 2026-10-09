@@ -9,11 +9,7 @@ import { existsSync } from "node:fs";
 
 import { createClient, type PostgrestError } from "@supabase/supabase-js";
 
-import {
-  parseEnv,
-  publicEnvSchema,
-  serverEnvSchema,
-} from "@/config/env-schema";
+import { parseEnv, publicEnvSchema, serverEnvSchema } from "@/config/env-schema";
 import type { Database } from "@/db/database.types";
 import {
   wrenfieldBadCardClients,
@@ -36,39 +32,23 @@ if (existsSync(".env.local")) {
   process.loadEnvFile(".env.local");
 }
 
-const { NEXT_PUBLIC_SUPABASE_URL: supabaseUrl } = parseEnv(
-  publicEnvSchema,
-  process.env,
-  "public",
-);
-const { SUPABASE_SECRET_KEY: secretKey } = parseEnv(
-  serverEnvSchema,
-  process.env,
-  "server",
-);
+const { NEXT_PUBLIC_SUPABASE_URL: supabaseUrl } = parseEnv(publicEnvSchema, process.env, "public");
+const { SUPABASE_SECRET_KEY: secretKey } = parseEnv(serverEnvSchema, process.env, "server");
 
 // A fixed password is fine for a local database; anywhere else it must come from the environment so the
 // public repository never holds a working credential.
-const isLocal = /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(
-  supabaseUrl,
-);
+const isLocal = /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?\/?$/.test(supabaseUrl);
 const demoPassword =
-  process.env.DEMO_USER_PASSWORD ??
-  (isLocal ? "wrenfield-local-demo" : undefined);
+  process.env.DEMO_USER_PASSWORD ?? (isLocal ? "wrenfield-local-demo" : undefined);
 if (!demoPassword) {
-  throw new Error(
-    "Set DEMO_USER_PASSWORD to seed a database that is not the local one.",
-  );
+  throw new Error("Set DEMO_USER_PASSWORD to seed a database that is not the local one.");
 }
 
 const admin = createClient<Database>(supabaseUrl, secretKey, {
   auth: { persistSession: false, autoRefreshToken: false },
 });
 
-function must<T>(
-  result: { data: T; error: PostgrestError | null },
-  what: string,
-): NonNullable<T> {
+function must<T>(result: { data: T; error: PostgrestError | null }, what: string): NonNullable<T> {
   if (result.error) {
     throw new Error(`${what}: ${result.error.message}`);
   }
@@ -89,13 +69,10 @@ async function ensureUser(email: string, fullName: string): Promise<string> {
 
     const existing = data.users.find((user) => user.email === email);
     if (existing) {
-      const { error: updateError } = await admin.auth.admin.updateUserById(
-        existing.id,
-        {
-          password: demoPassword,
-          user_metadata: { full_name: fullName },
-        },
-      );
+      const { error: updateError } = await admin.auth.admin.updateUserById(existing.id, {
+        password: demoPassword,
+        user_metadata: { full_name: fullName },
+      });
       if (updateError) throw updateError;
       return existing.id;
     }
@@ -116,11 +93,7 @@ async function main() {
   console.log(`Seeding ${wrenfieldTenant.name} into ${supabaseUrl}`);
 
   must(
-    await admin
-      .from("tenants")
-      .delete()
-      .eq("slug", wrenfieldTenant.slug)
-      .select("id"),
+    await admin.from("tenants").delete().eq("slug", wrenfieldTenant.slug).select("id"),
     "remove previous demo tenant",
   );
 
@@ -174,10 +147,7 @@ async function main() {
     "create crews",
   );
   const crewIdByKey = new Map(
-    wrenfieldCrews.map((crew) => [
-      crew.key,
-      crews.find((row) => row.name === crew.name)!.id,
-    ]),
+    wrenfieldCrews.map((crew) => [crew.key, crews.find((row) => row.name === crew.name)!.id]),
   );
 
   must(
@@ -242,9 +212,7 @@ async function main() {
   // Clients and homes ------------------------------------------------------------------------------------
   const seededClients = [];
   for (const client of wrenfieldClients) {
-    const userId = client.loginKey
-      ? await ensureUser(client.email, client.fullName)
-      : null;
+    const userId = client.loginKey ? await ensureUser(client.email, client.fullName) : null;
 
     const clientRow = must(
       await admin

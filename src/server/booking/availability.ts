@@ -31,17 +31,13 @@ export async function loadBusy(
     .eq("tenant_id", tenantId)
     .overlaps("busy", `[${start},${end})`);
   if (options.excludeBookingId) {
-    query = query.or(
-      `booking_id.is.null,booking_id.neq.${options.excludeBookingId}`,
-    );
+    query = query.or(`booking_id.is.null,booking_id.neq.${options.excludeBookingId}`);
   }
   const rows = unwrap(await query, "load crew time");
 
   const now = Date.now();
   return rows
-    .filter(
-      (row) => row.kind !== "hold" || Date.parse(row.hold_expires_at!) > now,
-    )
+    .filter((row) => row.kind !== "hold" || Date.parse(row.hold_expires_at!) > now)
     .map((row) => ({ crewId: row.crew_id, ...parseRange(row.busy) }));
 }
 
@@ -54,10 +50,7 @@ export type WindowQuery = {
   excludeBookingId?: string;
 };
 
-export async function windowsFor(
-  catalog: Catalog,
-  query: WindowQuery,
-): Promise<DayOption[]> {
+export async function windowsFor(catalog: Catalog, query: WindowQuery): Promise<DayOption[]> {
   const [crewIds, busy] = await Promise.all([
     activeCrewIds(catalog.tenant.id),
     loadBusy(catalog, query.from, query.to, {

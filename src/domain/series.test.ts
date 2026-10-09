@@ -34,22 +34,14 @@ describe("expandSeries()", () => {
       from: "2026-11-10",
       through: "2026-12-31",
     });
-    expect(visits.map((v) => v.date)).toEqual([
-      "2026-11-23",
-      "2026-12-07",
-      "2026-12-21",
-    ]);
+    expect(visits.map((v) => v.date)).toEqual(["2026-11-23", "2026-12-07", "2026-12-21"]);
   });
 
   it("repeats weekly and every 4 weeks on the same weekday", () => {
     const range = { from: "2026-10-26", through: "2026-12-31" };
+    expect(expandSeries({ ...everyOtherMonday, frequency: "weekly" }, range)).toHaveLength(10);
     expect(
-      expandSeries({ ...everyOtherMonday, frequency: "weekly" }, range),
-    ).toHaveLength(10);
-    expect(
-      expandSeries({ ...everyOtherMonday, frequency: "monthly" }, range).map(
-        (v) => v.date,
-      ),
+      expandSeries({ ...everyOtherMonday, frequency: "monthly" }, range).map((v) => v.date),
     ).toEqual(["2026-10-26", "2026-11-23", "2026-12-21"]);
   });
 

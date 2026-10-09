@@ -124,10 +124,7 @@ export class StripePaymentProvider implements PaymentProvider {
     } catch (error) {
       if (error instanceof Stripe.errors.StripeCardError) {
         return {
-          status:
-            error.code === "authentication_required"
-              ? "requires_action"
-              : "failed",
+          status: error.code === "authentication_required" ? "requires_action" : "failed",
           failureCode: error.decline_code ?? error.code ?? null,
           failureMessage: error.message,
         };
@@ -136,11 +133,7 @@ export class StripePaymentProvider implements PaymentProvider {
     }
   }
 
-  async refund(input: {
-    paymentRef: string;
-    amountCents: number;
-    idempotencyKey: string;
-  }) {
+  async refund(input: { paymentRef: string; amountCents: number; idempotencyKey: string }) {
     const refund = await this.stripe.refunds.create(
       { payment_intent: input.paymentRef, amount: input.amountCents },
       { idempotencyKey: input.idempotencyKey },
@@ -160,11 +153,7 @@ export class StripePaymentProvider implements PaymentProvider {
     signature: string,
     webhookSecret: string,
   ): Promise<ProviderEvent | null> {
-    const event = await this.stripe.webhooks.constructEventAsync(
-      rawBody,
-      signature,
-      webhookSecret,
-    );
+    const event = await this.stripe.webhooks.constructEventAsync(rawBody, signature, webhookSecret);
     const base = { provider: this.name, eventId: event.id, type: event.type };
 
     switch (event.type) {
@@ -179,15 +168,10 @@ export class StripePaymentProvider implements PaymentProvider {
           paymentRef: intent.id,
           // After a decline the intent waits for another card; for the app this attempt failed.
           status:
-            event.type === "payment_intent.payment_failed"
-              ? "failed"
-              : intentStatus(intent.status),
+            event.type === "payment_intent.payment_failed" ? "failed" : intentStatus(intent.status),
           failureCode: intent.last_payment_error?.code ?? null,
           failureMessage: intent.last_payment_error?.message ?? null,
-          card:
-            intent.status === "succeeded"
-              ? await this.card(intent.payment_method)
-              : null,
+          card: intent.status === "succeeded" ? await this.card(intent.payment_method) : null,
         };
       }
       case "setup_intent.succeeded":
@@ -198,15 +182,10 @@ export class StripePaymentProvider implements PaymentProvider {
           ...base,
           paymentRef: intent.id,
           status:
-            event.type === "setup_intent.setup_failed"
-              ? "failed"
-              : intentStatus(intent.status),
+            event.type === "setup_intent.setup_failed" ? "failed" : intentStatus(intent.status),
           failureCode: intent.last_setup_error?.code ?? null,
           failureMessage: intent.last_setup_error?.message ?? null,
-          card:
-            intent.status === "succeeded"
-              ? await this.card(intent.payment_method)
-              : null,
+          card: intent.status === "succeeded" ? await this.card(intent.payment_method) : null,
         };
       }
       default:
@@ -214,14 +193,10 @@ export class StripePaymentProvider implements PaymentProvider {
     }
   }
 
-  private async card(
-    method: string | Stripe.PaymentMethod | null,
-  ): Promise<CardDetails | null> {
+  private async card(method: string | Stripe.PaymentMethod | null): Promise<CardDetails | null> {
     if (!method) return null;
     const pm =
-      typeof method === "string"
-        ? await this.stripe.paymentMethods.retrieve(method)
-        : method;
+      typeof method === "string" ? await this.stripe.paymentMethods.retrieve(method) : method;
     if (!pm.card) return null;
     return {
       payment_method_ref: pm.id,
@@ -237,8 +212,7 @@ export class StripePaymentProvider implements PaymentProvider {
     clientSecret: string | null,
     mode: "payment" | "setup",
   ): CheckoutSession {
-    if (!clientSecret)
-      throw new Error(`Stripe returned no client secret for ${id}`);
+    if (!clientSecret) throw new Error(`Stripe returned no client secret for ${id}`);
     return { provider: this.name, paymentRef: id, clientSecret, mode };
   }
 }

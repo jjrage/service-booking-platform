@@ -24,10 +24,7 @@ export function Field({
 }) {
   return (
     <div className={cn("space-y-1.5", className)}>
-      <label
-        htmlFor={htmlFor}
-        className="block text-sm font-medium text-zinc-800"
-      >
+      <label htmlFor={htmlFor} className="block text-sm font-medium text-zinc-800">
         {label}
       </label>
       {children}
@@ -45,9 +42,7 @@ export function Input({ className, ...props }: ComponentProps<"input">) {
 }
 
 export function Textarea({ className, ...props }: ComponentProps<"textarea">) {
-  return (
-    <textarea className={cn(control, "min-h-20 py-2", className)} {...props} />
-  );
+  return <textarea className={cn(control, "min-h-20 py-2", className)} {...props} />;
 }
 
 export function Select({ className, ...props }: ComponentProps<"select">) {
@@ -72,9 +67,7 @@ export function Checkbox({
       />
       <span className="text-sm">
         <span className="font-medium text-zinc-800">{label}</span>
-        {description && (
-          <span className="block text-zinc-500">{description}</span>
-        )}
+        {description && <span className="block text-zinc-500">{description}</span>}
       </span>
     </label>
   );
@@ -107,10 +100,7 @@ export function Stepper({
       >
         −
       </button>
-      <span
-        className="tabular w-8 text-center text-sm font-semibold"
-        aria-live="polite"
-      >
+      <span className="tabular w-8 text-center text-sm font-semibold" aria-live="polite">
         {value}
       </span>
       <button
