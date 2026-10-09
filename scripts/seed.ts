@@ -127,6 +127,7 @@ async function main() {
           tenant_id: tenant.id,
           user_id: staffIds.get(member.key)!,
           role: member.role,
+          display_name: member.fullName,
         })),
       )
       .select("user_id"),
@@ -177,6 +178,7 @@ async function main() {
           name: service.name,
           description: service.description,
           booking_mode: service.bookingMode,
+          checklist: "checklist" in service ? [...service.checklist] : [],
           sort_order: index,
         })),
       )

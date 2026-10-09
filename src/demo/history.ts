@@ -386,8 +386,9 @@ export function generateHistory(
 
   for (let d = -PAST_DAYS; d <= FUTURE_DAYS; d++) {
     const date = addDays(input.today, d);
-    if (!isOpen(date) || d === 0) continue;
-    const fillRate = d < 0 ? 0.62 : d <= 7 ? 0.5 : 0.3;
+    if (!isOpen(date)) continue;
+    // Busy recent weeks and a full next week, thinning out further ahead (people book 1-2 weeks out).
+    const fillRate = d < 0 ? 0.72 : d <= 7 ? 0.8 : d <= 14 ? 0.5 : 0.3;
     for (const crew of crews) {
       for (const [start] of schedule.rules.arrival_windows) {
         if (rand() > fillRate) continue;
