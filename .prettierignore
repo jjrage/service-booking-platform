@@ -1,8 +1,8 @@
 # Internal notes (not part of the public repository)
-CLAUDE.md
-docs/
-reports/
-research_notes/
+/CLAUDE.md
+/docs/
+/reports/
+/research_notes/
 
 # Generated and vendored
 .next/
