@@ -1,7 +1,10 @@
+import { appendFileSync, mkdirSync, writeFileSync } from "node:fs";
+
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import type { ClientContext } from "@/server/auth/viewer";
 import { runTurn, type ChatEvent } from "@/server/ai/chat";
+import { aiConfig } from "@/server/ai/config";
 import type { AssistantContext } from "@/server/ai/handlers";
 import { loadCatalog, type Catalog } from "@/server/catalog";
 
@@ -18,6 +21,15 @@ import { createTestTenant } from "../integration/test-tenant";
  */
 
 const enabled = Boolean(process.env.ANTHROPIC_API_KEY);
+
+/** Transcripts with token counts and cost land here (git-ignored). */
+const transcriptFile = "test-results/ai-eval.md";
+
+/** List prices per million tokens; cache writes (5-minute) cost 1.25x input, cache reads 0.1x. */
+const prices: Record<string, { input: number; output: number }> = {
+  "claude-opus-5-5": { input: 4, output: 20 },
+  "claude-sonnet-5-5": { input: 2, output: 10 },
+};
 
 let tenant: Awaited<ReturnType<typeof createTestTenant>>;
 let catalog: Catalog;
@@ -60,14 +72,46 @@ async function chat(channel: "web" | "portal", messages: string[]) {
     .order("id");
   const { data: conversation } = await tenant.admin
     .from("ai_conversations")
-    .select("booking_id")
+    .select("booking_id, input_tokens, output_tokens, cache_read_tokens, cache_write_tokens")
     .eq("id", ctx.conversationId)
     .single();
+
+  // The transcript and its cost, for reading by hand; the assertions only check outcomes.
+  const usage = {
+    input: Number(conversation?.input_tokens ?? 0),
+    output: Number(conversation?.output_tokens ?? 0),
+    cacheRead: Number(conversation?.cache_read_tokens ?? 0),
+    cacheWrite: Number(conversation?.cache_write_tokens ?? 0),
+  };
+  const price = prices[aiConfig.model];
+  const cost = price
+    ? (usage.input * price.input +
+        usage.cacheWrite * price.input * 1.25 +
+        usage.cacheRead * price.input * 0.1 +
+        usage.output * price.output) /
+      1e6
+    : null;
+  appendFileSync(
+    transcriptFile,
+    [
+      `## ${expect.getState().currentTestName ?? "scenario"}`,
+      ...messages.flatMap((m, i) => [`**User:** ${m}`, `**Assistant:** ${replies[i] ?? ""}`]),
+      `**Tools:** ${(calls ?? []).map((c) => `${c.tool_name}${c.ok ? "" : " (failed)"}`).join(", ") || "none"}`,
+      `**Tokens:** ${usage.input} in, ${usage.cacheWrite} cache write, ${usage.cacheRead} cache read, ${usage.output} out` +
+        (cost === null ? "" : ` ≈ $${cost.toFixed(3)}`),
+      "",
+    ].join("\n\n"),
+  );
   return { replies, calls: calls ?? [], bookingId: conversation?.booking_id ?? null, ctx };
 }
 
 beforeAll(async () => {
   if (!enabled) return;
+  mkdirSync("test-results", { recursive: true });
+  writeFileSync(
+    transcriptFile,
+    `# AI eval transcripts\n\nModel: ${aiConfig.model}, effort ${aiConfig.effort}, ${new Date().toISOString()}\n\n`,
+  );
   tenant = await createTestTenant({ crews: 2 });
   catalog = (await loadCatalog(tenant.slug))!;
   const { data: user } = await tenant.admin.auth.admin.createUser({

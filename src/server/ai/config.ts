@@ -9,9 +9,9 @@ import { serverEnv } from "@/config/server-env";
 export const aiConfig = {
   enabled: Boolean(serverEnv.ANTHROPIC_API_KEY),
   model: serverEnv.ANTHROPIC_MODEL ?? "claude-opus-5-5",
-  /** Thinking counts toward max_tokens on Claude Opus 5.5 (it is always on), so leave room for it. */
+  /** Thinking is on by default on Claude Opus 5.5 and Sonnet 5.5 and counts toward max_tokens. */
   maxTokens: 16000,
-  /** Claude Opus 5.5 defaults to medium; set explicitly so a model change does not silently change it. */
+  /** Set explicitly: defaults differ by model (medium on Opus 5.5, high on Sonnet 5.5). */
   effort: "medium" as const,
   /** API requests per user message: enough for quote → availability → hold → book, not for a runaway loop. */
   maxIterations: 8,

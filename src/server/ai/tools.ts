@@ -25,6 +25,11 @@ type ToolSpec<S extends z.ZodType> = {
   run: (ctx: AssistantContext, input: z.infer<S>) => Promise<ToolOutput>;
   /** Only for signed-in clients in the portal. */
   portalOnly?: boolean;
+  /**
+   * Strict tool use (schema-valid input guaranteed by the API) is on by default. The API caps the combined
+   * size of strict schemas in one request, so a tool may opt out; Zod still validates its input.
+   */
+  strict?: false;
 };
 
 function spec<S extends z.ZodType>(s: ToolSpec<S>): ToolSpec<S> {
@@ -73,6 +78,10 @@ export const toolSpecs = [
       "Create the booking for the held window, after the client confirmed the read-back. Guests: give name, e-mail, phone and address; the result is pending payment with a payment link. Signed-in clients: their home on file is used and their saved card pays the deposit.",
     schema: handlers.createBookingSchema,
     run: handlers.createBooking,
+    // With its nine nullable fields next to the three tools that carry the visit, the strict schemas exceed
+    // the API's grammar size limit ("compiled grammar is too large"). An invalid input comes back to the
+    // model as an error, and nothing is booked without a held window anyway.
+    strict: false,
   }),
   spec({
     name: "list_my_visits",
@@ -184,12 +193,55 @@ export async function runLogged<S extends z.ZodType>(
   }
 }
 
+/** JSON Schema keywords that strict tool use rejects (the API answers 400). */
+export const strictUnsupportedKeywords = [
+  "minimum",
+  "maximum",
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "multipleOf",
+  "minLength",
+  "maxLength",
+  "pattern",
+  "minItems",
+  "maxItems",
+] as const;
+
+/**
+ * Strict tool schemas accept a subset of JSON Schema. Bounds are removed from the schema sent to the API and
+ * written into the field's description instead, so the model still knows them; Zod enforces them when the
+ * tool runs.
+ */
+export function forStrictTools(schema: unknown): unknown {
+  if (Array.isArray(schema)) return schema.map(forStrictTools);
+  if (!schema || typeof schema !== "object") return schema;
+  const out: Record<string, unknown> = {};
+  const limits: string[] = [];
+  for (const [key, value] of Object.entries(schema)) {
+    if ((strictUnsupportedKeywords as readonly string[]).includes(key)) {
+      limits.push(key === "pattern" ? `format ${String(value)}` : `${key} ${String(value)}`);
+    } else if (key === "properties" && value && typeof value === "object") {
+      out[key] = Object.fromEntries(
+        Object.entries(value).map(([name, property]) => [name, forStrictTools(property)]),
+      );
+    } else {
+      out[key] = forStrictTools(value);
+    }
+  }
+  if (limits.length > 0) {
+    const note = `Limits: ${limits.join(", ")}.`;
+    const text = typeof out.description === "string" ? out.description.trim() : "";
+    out.description = text ? `${text}${/[.!?]$/.test(text) ? "" : "."} ${note}` : note;
+  }
+  return out;
+}
+
 /** The runnable tools for a conversation: strict schemas, inputs streamed as generated. */
 export function buildTools(ctx: AssistantContext, onEvent: (event: ToolEvent) => void) {
   return toolSpecs
     .filter((t) => !("portalOnly" in t && t.portalOnly) || ctx.channel === "portal")
-    .map((t) => ({
-      ...betaZodTool({
+    .map((t) => {
+      const runnable = betaZodTool({
         name: t.name,
         description: t.description,
         inputSchema: t.schema,
@@ -203,8 +255,15 @@ export function buildTools(ctx: AssistantContext, onEvent: (event: ToolEvent) =>
           );
           return JSON.stringify(output.result);
         },
-      }),
-      strict: true,
-      eager_input_streaming: true,
-    }));
+      });
+      // betaZodTool always builds a custom tool, the member of its return type with an input schema.
+      const tool = runnable as Extract<typeof runnable, { input_schema: unknown }>;
+      const strict = !("strict" in t && t.strict === false);
+      return {
+        ...tool,
+        input_schema: forStrictTools(tool.input_schema) as typeof tool.input_schema,
+        strict,
+        eager_input_streaming: true,
+      };
+    });
 }

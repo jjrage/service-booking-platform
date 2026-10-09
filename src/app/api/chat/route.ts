@@ -68,10 +68,19 @@ export async function POST(request: Request) {
   if (!opened.ok) return Response.json({ error: opened.message }, { status: 429 });
 
   const encoder = new TextEncoder();
+  let open = true;
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
-      const emit = (event: ChatEvent) =>
-        controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+      // If the visitor closes the chat mid-answer, the turn still finishes on the server, so a booking in
+      // progress and the stored conversation stay consistent; there is just no one left to stream to.
+      const emit = (event: ChatEvent) => {
+        if (!open) return;
+        try {
+          controller.enqueue(encoder.encode(`${JSON.stringify(event)}\n`));
+        } catch {
+          open = false;
+        }
+      };
       emit({ type: "conversation", id: opened.conversation.id });
       try {
         await runTurn(
@@ -89,8 +98,11 @@ export async function POST(request: Request) {
         console.error("chat turn", error);
         emit({ type: "error", message: describeFailure(error) });
       } finally {
-        controller.close();
+        if (open) controller.close();
       }
+    },
+    cancel() {
+      open = false;
     },
   });
 
