@@ -10,6 +10,7 @@ const links = [
   { href: "/admin/calendar", label: "Calendar" },
   { href: "/admin/clients", label: "Clients" },
   { href: "/admin/payments", label: "Payments" },
+  { href: "/admin/messages", label: "Messages" },
   { href: "/admin/crews", label: "Crews & time off" },
   { href: "/admin/rules", label: "Prices & rules" },
   { href: "/admin/alerts", label: "Needs attention" },

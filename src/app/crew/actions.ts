@@ -6,6 +6,7 @@ import { z } from "zod";
 import { requireCleaner } from "@/server/auth/viewer";
 import { completeJob, markNoAccess } from "@/server/booking/jobs";
 import { CommandError } from "@/server/db/errors";
+import { sendSoon } from "@/server/notifications/sender";
 
 /**
  * Crew app actions. The database checks that the cleaner belongs to the booking's crew; photos were uploaded
@@ -27,6 +28,7 @@ export async function completeJobAction(
   try {
     const { charge } = await completeJob({ ...parsed, actorUserId: viewer.userId });
     refresh();
+    sendSoon();
     return {
       ok: true,
       message:
@@ -48,6 +50,7 @@ export async function noAccessAction(
   try {
     await markNoAccess({ bookingId: z.uuid().parse(bookingId), actorUserId: viewer.userId, note });
     refresh();
+    sendSoon();
     return { ok: true, message: "Reported. The office and the client are notified." };
   } catch (error) {
     if (error instanceof CommandError) return { ok: false, message: error.message };

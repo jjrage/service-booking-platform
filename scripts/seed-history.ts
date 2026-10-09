@@ -300,6 +300,12 @@ export async function insertHistory(
     }
   }
 
+  // Upcoming visits get their reminders, as if they had been booked live.
+  const { error: reminderError } = await admin.rpc("cmd_schedule_reminders", {
+    p_tenant_id: tenantId,
+  });
+  if (reminderError) throw new Error(`schedule reminders: ${reminderError.message}`);
+
   return {
     plans: history.plans.length,
     bookings: history.bookings.length,

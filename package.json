@@ -22,7 +22,8 @@
     "db:status": "supabase status",
     "test:db": "supabase test db && vitest run --config vitest.integration.mts",
     "db:types": "supabase gen types typescript --local > src/db/database.types.ts && prettier --write src/db/database.types.ts",
-    "db:seed": "tsx scripts/seed.ts"
+    "db:seed": "tsx scripts/seed.ts",
+    "jobs:local": "tsx scripts/jobs-local.ts"
   },
   "dependencies": {
     "@stripe/react-stripe-js": "6.10.0",

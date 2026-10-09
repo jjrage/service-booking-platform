@@ -19,6 +19,7 @@ import { nullable } from "@/server/db/args";
 import { adminDb } from "@/server/db/admin";
 import { CommandError, ensureOk } from "@/server/db/errors";
 import { userDb } from "@/server/db/user-client";
+import { sendSoon } from "@/server/notifications/sender";
 import { pausePlan, resumePlan } from "@/server/plans";
 
 /**
@@ -65,6 +66,7 @@ export async function cancelVisitAction(
       reason: "Cancelled by the client",
     });
     refresh();
+    sendSoon();
     return {
       ok: true,
       message:
@@ -115,6 +117,7 @@ export async function rescheduleVisitAction(
     const result = await rescheduleBooking(bookingId, actorOf(viewer), target.data);
     if (!result.ok) return { ok: false, message: result.message };
     refresh();
+    sendSoon();
     return { ok: true };
   } catch (error) {
     if (error instanceof CommandError) return { ok: false, message: error.message };
@@ -145,6 +148,7 @@ export async function pausePlanAction(
   try {
     const cancelled = await pausePlan(planId, actorOf(viewer), date.data);
     refresh();
+    sendSoon();
     return { ok: true, cancelled };
   } catch (error) {
     if (error instanceof CommandError) return { ok: false, message: error.message };
