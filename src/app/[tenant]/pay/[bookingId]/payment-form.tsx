@@ -112,7 +112,10 @@ function StripeFields({ session, amountLabel, returnUrl }: Props) {
             redirect: "if_required",
           });
     if (result.error) {
-      setError(result.error.message ?? "The payment did not go through.");
+      // The Payment Element shows card and validation errors next to the field; show the rest here.
+      const shownByStripe =
+        result.error.type === "card_error" || result.error.type === "validation_error";
+      setError(shownByStripe ? null : (result.error.message ?? "The payment did not go through."));
       setPending(false);
       return;
     }
@@ -124,7 +127,13 @@ function StripeFields({ session, amountLabel, returnUrl }: Props) {
     <Card>
       <CardBody>
         <form onSubmit={submit} className="space-y-4">
-          <PaymentElement />
+          <PaymentElement
+            options={{
+              // Card only, without Stripe's Link sign-up; the businesses and their clients are in the US.
+              wallets: { link: "never" },
+              defaultValues: { billingDetails: { address: { country: "US" } } },
+            }}
+          />
           {error && <Alert tone="danger">{error}</Alert>}
           <Button type="submit" size="lg" className="w-full" disabled={!stripe || pending}>
             {pending && <Spinner />}
