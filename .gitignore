@@ -23,6 +23,9 @@
 /test-results/
 /playwright-report/
 
+# Local developer tools (the Stripe CLI binary)
+/.tools/
+
 # Next.js
 /.next/
 /out/

@@ -311,6 +311,7 @@ cp .env.example .env.local     # fill in the local keys printed by `npm run db:s
 npm run db:seed                # the demo business with eight weeks of history
 npm run dev                    # http://localhost:3000
 npm run jobs:local             # optional: reminders, holds and plans on a schedule
+npm run stripe:listen          # optional, with Stripe test keys: forwards webhooks (needs the Stripe CLI)
 ```
 
 For a deployment, `supabase/schedule-jobs.sql` sets up the every-minute job in Supabase, and `vercel.json` runs the
