@@ -1,10 +1,32 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 
 /**
  * The main path of the public booking page: quote → arrival window → details → deposit → confirmed, then the
- * owner sees the booking and both payment attempts. Runs against the seeded demo business; with no Stripe keys
- * configured, payments go through the built-in simulator, which follows Stripe's test cards.
+ * owner sees the booking and both payment attempts. Runs against the seeded demo business. With Stripe test keys
+ * the card goes into Stripe's Payment Element (locally the webhook needs `stripe listen`); without them, into
+ * the built-in simulator, which follows Stripe's test cards.
  */
+
+const stripeFrame = 'iframe[title="Secure payment input frame"]';
+
+/** Enters a test card in whichever payment form the page shows, and submits it. */
+async function payWith(page: Page, stripe: boolean, number: string) {
+  if (stripe) {
+    const frame = page.frameLocator(stripeFrame).first();
+    await frame.locator('input[name="number"]').fill(number);
+    await frame.locator('input[name="expiry"]').fill("12 / 30");
+    await frame.locator('input[name="cvc"]').fill("123");
+    const zip = frame.locator('input[name="postalCode"]');
+    if (await zip.count()) await zip.fill("27609");
+    // An earlier decline message goes away with the new number, and the form shrinks; click once it has, or the
+    // button moves from under the pointer.
+    await expect(frame.getByText(/declined/)).toHaveCount(0);
+  } else {
+    await page.getByLabel("Card number").fill(number);
+  }
+  await page.getByRole("button", { name: /^Pay \$/ }).click();
+}
+
 test("a guest books a cleaning, retries a declined card and pays the deposit", async ({
   page,
   browser,
@@ -37,13 +59,19 @@ test("a guest books a cleaning, retries a declined card and pays the deposit", a
   // 4. The deposit: a declined test card first, then one that succeeds.
   await page.waitForURL(/\/wrenfield\/pay\//);
   await expect(page.getByRole("heading", { name: /^Pay the \$[\d.,]+ deposit$/ })).toBeVisible();
-  const pay = page.getByRole("button", { name: /^Pay \$/ });
-  await page.getByLabel("Card number").fill("4000000000000002");
-  await pay.click();
-  await expect(page.getByText("Your card was declined.")).toBeVisible();
+  const stripe = !(await page.getByText("Test payments · simulated").isVisible());
+  await payWith(page, stripe, "4000000000000002");
+  const declined = stripe
+    ? page
+        .frameLocator(stripeFrame)
+        .first()
+        .getByText(/declined/)
+    : page.getByText("Your card was declined.");
+  await expect(declined).toBeVisible();
 
-  await page.getByLabel("Card number").fill("4242424242424242");
-  await pay.click();
+  // The first attempt is over once the button is usable again; only then enter the next card.
+  await expect(page.getByRole("button", { name: /^Pay \$/ })).toBeEnabled();
+  await payWith(page, stripe, "4242424242424242");
   await page.waitForURL(/\/wrenfield\/bookings\/[0-9a-f-]{36}/);
   await expect(page.getByRole("heading", { name: "You're booked!" })).toBeVisible();
   await expect(page.getByText(email)).toBeVisible();
@@ -63,7 +91,8 @@ test("a guest books a cleaning, retries a declined card and pays the deposit", a
     admin.locator("li", { hasText: "Deposit" }).filter({ hasText: "succeeded" }),
   ).toHaveCount(1);
   const history = admin.locator("ol li");
-  await expect(history.filter({ hasText: "Payment failed" })).toHaveCount(1);
   await expect(history.filter({ hasText: "Booked" })).toHaveCount(1);
+  // Stripe may deliver the decline's webhook after the success, and a late failure does not undo a payment.
+  if (!stripe) await expect(history.filter({ hasText: "Payment failed" })).toHaveCount(1);
   await owner.close();
 });
