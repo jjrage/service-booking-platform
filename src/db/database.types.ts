@@ -10,12 +10,7 @@ export type Database = {
     };
     Functions: {
       graphql: {
-        Args: {
-          extensions?: Json;
-          operationName?: string;
-          query?: string;
-          variables?: Json;
-        };
+        Args: { extensions?: Json; operationName?: string; query?: string; variables?: Json };
         Returns: Json;
       };
     };
@@ -554,9 +549,96 @@ export type Database = {
           },
         ];
       };
+      job_photos: {
+        Row: {
+          booking_id: string;
+          created_at: string;
+          id: string;
+          storage_path: string;
+          tenant_id: string;
+          uploaded_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          created_at?: string;
+          id?: string;
+          storage_path: string;
+          tenant_id: string;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          booking_id?: string;
+          created_at?: string;
+          id?: string;
+          storage_path?: string;
+          tenant_id?: string;
+          uploaded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_photos_tenant_id_booking_id_fkey";
+            columns: ["tenant_id", "booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "job_photos_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      job_reports: {
+        Row: {
+          booking_id: string;
+          checklist: NonNullable<Json>;
+          completed_at: string;
+          completed_by: string | null;
+          notes: string | null;
+          tenant_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id: string;
+          checklist?: NonNullable<Json>;
+          completed_at?: string;
+          completed_by?: string | null;
+          notes?: string | null;
+          tenant_id: string;
+        };
+        Update: {
+          booking_id?: string;
+          checklist?: NonNullable<Json>;
+          completed_at?: string;
+          completed_by?: string | null;
+          notes?: string | null;
+          tenant_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "job_reports_tenant_id_booking_id_fkey";
+            columns: ["tenant_id", "booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "job_reports_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       memberships: {
         Row: {
           created_at: string;
+          display_name: string;
           role: Database["public"]["Enums"]["member_role"];
           tenant_id: string;
           user_id: string;
@@ -564,12 +646,14 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           created_at?: string;
+          display_name?: string;
           role: Database["public"]["Enums"]["member_role"];
           tenant_id: string;
           user_id: string;
         };
         Update: {
           created_at?: string;
+          display_name?: string;
           role?: Database["public"]["Enums"]["member_role"];
           tenant_id?: string;
           user_id?: string;
@@ -987,6 +1071,7 @@ export type Database = {
         Row: {
           active: boolean;
           booking_mode: Database["public"]["Enums"]["booking_mode"];
+          checklist: string[];
           code: string;
           created_at: string;
           description: string;
@@ -999,6 +1084,7 @@ export type Database = {
         Insert: {
           active?: boolean;
           booking_mode: Database["public"]["Enums"]["booking_mode"];
+          checklist?: string[];
           code: string;
           created_at?: string;
           description?: string;
@@ -1010,6 +1096,7 @@ export type Database = {
         Update: {
           active?: boolean;
           booking_mode?: Database["public"]["Enums"]["booking_mode"];
+          checklist?: string[];
           code?: string;
           created_at?: string;
           description?: string;
@@ -1070,6 +1157,10 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      cmd_add_client_note: {
+        Args: { p_actor: string; p_body: string; p_client_id: string };
+        Returns: string;
+      };
       cmd_add_time_off: {
         Args: {
           p_actor: string;
@@ -1118,6 +1209,16 @@ export type Database = {
           p_plan_id: string;
         };
         Returns: number;
+      };
+      cmd_complete_job: {
+        Args: {
+          p_actor: string;
+          p_booking_id: string;
+          p_checklist: Json;
+          p_notes: string;
+          p_photo_paths: string[];
+        };
+        Returns: undefined;
       };
       cmd_create_booking: {
         Args: {
@@ -1173,9 +1274,10 @@ export type Database = {
           hold_token: string;
         }[];
       };
-      cmd_link_client_account: {
-        Args: { p_email: string; p_user_id: string };
-        Returns: number;
+      cmd_link_client_account: { Args: { p_email: string; p_user_id: string }; Returns: number };
+      cmd_mark_no_access: {
+        Args: { p_actor: string; p_booking_id: string; p_fee_cents: number; p_note: string };
+        Returns: undefined;
       };
       cmd_mark_plan_materialized: {
         Args: { p_plan_id: string; p_through: string };
@@ -1206,11 +1308,7 @@ export type Database = {
         }[];
       };
       cmd_raise_plan_conflict: {
-        Args: {
-          p_message: string;
-          p_occurrence_date: string;
-          p_plan_id: string;
-        };
+        Args: { p_message: string; p_occurrence_date: string; p_plan_id: string };
         Returns: undefined;
       };
       cmd_reassign_booking: {
@@ -1249,6 +1347,7 @@ export type Database = {
           crew_id: string;
         }[];
       };
+      cmd_resolve_alert: { Args: { p_actor: string; p_alert_id: string }; Returns: undefined };
       cmd_resume_plan: {
         Args: {
           p_actor: string;
@@ -1360,9 +1459,7 @@ export type Tables<
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
       DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R;
@@ -1385,9 +1482,7 @@ export type TablesInsert<
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I;
     }
@@ -1409,9 +1504,7 @@ export type TablesUpdate<
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never) = never,
-> = DefaultSchemaTableNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
+> = DefaultSchemaTableNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U;
     }
@@ -1433,9 +1526,7 @@ export type Enums<
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never) = never,
-> = DefaultSchemaEnumNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
+> = DefaultSchemaEnumNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
     ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
@@ -1449,9 +1540,7 @@ export type CompositeTypes<
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never) = never,
-> = PublicCompositeTypeNameOrOptions extends {
-  schema: keyof DatabaseWithoutInternals;
-}
+> = PublicCompositeTypeNameOrOptions extends { schema: keyof DatabaseWithoutInternals }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
     ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]

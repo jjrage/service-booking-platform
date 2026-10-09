@@ -284,6 +284,22 @@ export async function insertHistory(
     );
   }
 
+  // Clients joined a little before their first booking, not on the day the demo was seeded.
+  for (const client of input.clients) {
+    const first = history.bookings
+      .filter((b) => b.clientId === client.id)
+      .map((b) => b.createdAt)
+      .sort()[0];
+    if (first) {
+      const joined = new Date(Date.parse(first) - 3 * 86_400_000).toISOString();
+      const { error } = await admin
+        .from("clients")
+        .update({ created_at: joined })
+        .eq("id", client.id);
+      if (error) throw new Error(`backdate client: ${error.message}`);
+    }
+  }
+
   return {
     plans: history.plans.length,
     bookings: history.bookings.length,
