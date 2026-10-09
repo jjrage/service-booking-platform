@@ -16,15 +16,21 @@ import {
 } from "@/config/env-schema";
 import type { Database } from "@/db/database.types";
 import {
+  wrenfieldBadCardClients,
   wrenfieldCancellationRules,
+  wrenfieldClientNotes,
   wrenfieldClients,
   wrenfieldCrews,
+  wrenfieldPlans,
   wrenfieldPricingRules,
   wrenfieldScheduleRules,
   wrenfieldServices,
   wrenfieldStaff,
   wrenfieldTenant,
 } from "@/demo/wrenfield";
+import { toLocal } from "@/domain/time";
+
+import { insertHistory } from "./seed-history";
 
 if (existsSync(".env.local")) {
   process.loadEnvFile(".env.local");
@@ -191,7 +197,7 @@ async function main() {
   );
 
   // Services and rules ----------------------------------------------------------------------------------
-  must(
+  const services = must(
     await admin
       .from("services")
       .insert(
@@ -204,12 +210,12 @@ async function main() {
           sort_order: index,
         })),
       )
-      .select("id"),
+      .select("id, code"),
     "create services",
   );
 
   const ownerId = staffIds.get("owner")!;
-  must(
+  const ruleRows = must(
     await admin
       .from("rule_versions")
       .insert(
@@ -228,11 +234,13 @@ async function main() {
           effective_from: "2026-01-01T00:00:00Z",
         })),
       )
-      .select("id"),
+      .select("id, kind"),
     "publish initial rules",
   );
+  const ruleId = (kind: string) => ruleRows.find((r) => r.kind === kind)!.id;
 
   // Clients and homes ------------------------------------------------------------------------------------
+  const seededClients = [];
   for (const client of wrenfieldClients) {
     const userId = client.loginKey
       ? await ensureUser(client.email, client.fullName)
@@ -254,7 +262,7 @@ async function main() {
       `create client ${client.fullName}`,
     );
 
-    must(
+    const property = must(
       await admin
         .from("properties")
         .insert({
@@ -277,11 +285,68 @@ async function main() {
         .single(),
       `create home for ${client.fullName}`,
     );
+    seededClients.push({
+      id: clientRow.id,
+      propertyId: property.id,
+      fullName: client.fullName,
+      home: {
+        bedrooms: client.home.bedrooms,
+        fullBaths: client.home.fullBaths,
+        halfBaths: client.home.halfBaths,
+        sqft: client.home.sqft,
+      },
+      zip: client.home.zip,
+    });
+
+    for (const body of wrenfieldClientNotes[client.fullName] ?? []) {
+      must(
+        await admin
+          .from("client_notes")
+          .insert({
+            tenant_id: tenant.id,
+            client_id: clientRow.id,
+            author_id: staffIds.get("dispatcher")!,
+            body,
+          })
+          .select("id"),
+        `note about ${client.fullName}`,
+      );
+    }
   }
+
+  // History and upcoming visits ----------------------------------------------------------------------------
+  const now = new Date().toISOString();
+  const history = await insertHistory(
+    admin,
+    tenant.id,
+    {
+      today: toLocal(now, wrenfieldTenant.timezone).date,
+      now,
+      timeZone: wrenfieldTenant.timezone,
+      crews: wrenfieldCrews.map((crew) => ({
+        key: crew.key,
+        id: crewIdByKey.get(crew.key)!,
+      })),
+      clients: seededClients,
+      serviceIds: Object.fromEntries(services.map((s) => [s.code, s.id])),
+      rules: {
+        pricing: { id: ruleId("pricing"), rules: wrenfieldPricingRules },
+        schedule: { id: ruleId("schedule"), rules: wrenfieldScheduleRules },
+        cancellation: {
+          id: ruleId("cancellation"),
+          rules: wrenfieldCancellationRules,
+        },
+      },
+      staff: { dispatcherId: staffIds.get("dispatcher")! },
+    },
+    wrenfieldPlans.map((plan) => ({ ...plan })),
+    wrenfieldBadCardClients,
+  );
 
   console.log(
     `Done: ${wrenfieldStaff.length} staff, ${wrenfieldCrews.length} crews, ` +
-      `${wrenfieldServices.length} services, ${wrenfieldClients.length} clients.`,
+      `${wrenfieldServices.length} services, ${wrenfieldClients.length} clients, ` +
+      `${history.plans} plans, ${history.bookings} bookings, ${history.payments} payments.`,
   );
   if (isLocal) {
     console.log(`Demo logins use the password "${demoPassword}" (local only).`);

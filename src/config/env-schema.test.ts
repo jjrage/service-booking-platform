@@ -30,9 +30,31 @@ describe("parseEnv", () => {
   it("does not leak unrelated variables into the parsed result", () => {
     const env = parseEnv(
       serverEnvSchema,
-      { SUPABASE_SECRET_KEY: "sb_secret_test", UNRELATED: "value" },
+      {
+        SUPABASE_SECRET_KEY: "sb_secret_test",
+        APP_SECRET: "x".repeat(32),
+        UNRELATED: "value",
+      },
       "server",
     );
-    expect(env).toEqual({ SUPABASE_SECRET_KEY: "sb_secret_test" });
+    expect(env).toEqual({
+      SUPABASE_SECRET_KEY: "sb_secret_test",
+      APP_SECRET: "x".repeat(32),
+    });
+  });
+
+  it("treats empty integration keys as not configured and refuses live Stripe keys", () => {
+    const base = { SUPABASE_SECRET_KEY: "s", APP_SECRET: "x".repeat(32) };
+    expect(
+      parseEnv(serverEnvSchema, { ...base, STRIPE_SECRET_KEY: "" }, "server")
+        .STRIPE_SECRET_KEY,
+    ).toBeUndefined();
+    expect(() =>
+      parseEnv(
+        serverEnvSchema,
+        { ...base, STRIPE_SECRET_KEY: "sk_live_123" },
+        "server",
+      ),
+    ).toThrowError(/test-mode/);
   });
 });

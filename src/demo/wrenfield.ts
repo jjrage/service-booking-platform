@@ -539,3 +539,65 @@ export const wrenfieldClients: DemoClient[] = [
     },
   },
 ];
+
+/** Regular clients and their plans (the seeded history and the nightly reset build visits from these). */
+export const wrenfieldPlans = [
+  {
+    client: "Emily Thornton",
+    frequency: "biweekly",
+    weekday: "tue",
+    window: "08:00",
+    crew: "blue",
+    recentlyCleaned: false,
+  },
+  {
+    client: "Priya Raman",
+    frequency: "weekly",
+    weekday: "thu",
+    window: "11:00",
+    crew: "green",
+    recentlyCleaned: true,
+  },
+  {
+    client: "James Holloway",
+    frequency: "biweekly",
+    weekday: "mon",
+    window: "11:00",
+    crew: "amber",
+    recentlyCleaned: true,
+  },
+  {
+    client: "Hannah Lindqvist",
+    frequency: "monthly",
+    weekday: "fri",
+    window: "08:00",
+    crew: "blue",
+    recentlyCleaned: true,
+  },
+  {
+    client: "David Okafor",
+    frequency: "biweekly",
+    weekday: "wed",
+    window: "08:00",
+    crew: "green",
+    recentlyCleaned: false,
+  },
+] as const;
+
+/** Clients whose saved card is Stripe's "charges fail later" test card: shows the failed-payment path. */
+export const wrenfieldBadCardClients = ["Marcus Bellamy"];
+
+/** Notes the office keeps about clients (staff only; clients never see them). */
+export const wrenfieldClientNotes: Record<string, string[]> = {
+  "Emily Thornton": [
+    "Prefers Ana's crew. Asked us to use the unscented products in the nursery.",
+  ],
+  "David Okafor": [
+    "Works from home on Wednesdays; quiet vacuuming near the office.",
+  ],
+  "Sarah Whitaker": [
+    "Large home: book deep cleans in the 8:00 window only.",
+    "Parrot in the den is loud but harmless.",
+  ],
+  "Marcus Bellamy": ["Card declined last time; call before charging again."],
+};
