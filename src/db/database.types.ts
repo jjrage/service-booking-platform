@@ -23,6 +23,186 @@ export type Database = {
   };
   public: {
     Tables: {
+      ai_conversations: {
+        Row: {
+          booking_id: string | null;
+          cache_read_tokens: number;
+          cache_write_tokens: number;
+          channel: string;
+          client_id: string | null;
+          handed_off: boolean;
+          hold_token: string | null;
+          id: string;
+          input_tokens: number;
+          last_activity_at: string;
+          model: string;
+          output_tokens: number;
+          started_at: string;
+          tenant_id: string;
+          user_id: string | null;
+          user_turns: number;
+          visitor_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id?: string | null;
+          cache_read_tokens?: number;
+          cache_write_tokens?: number;
+          channel: string;
+          client_id?: string | null;
+          handed_off?: boolean;
+          hold_token?: string | null;
+          id?: string;
+          input_tokens?: number;
+          last_activity_at?: string;
+          model: string;
+          output_tokens?: number;
+          started_at?: string;
+          tenant_id: string;
+          user_id?: string | null;
+          user_turns?: number;
+          visitor_id: string;
+        };
+        Update: {
+          booking_id?: string | null;
+          cache_read_tokens?: number;
+          cache_write_tokens?: number;
+          channel?: string;
+          client_id?: string | null;
+          handed_off?: boolean;
+          hold_token?: string | null;
+          id?: string;
+          input_tokens?: number;
+          last_activity_at?: string;
+          model?: string;
+          output_tokens?: number;
+          started_at?: string;
+          tenant_id?: string;
+          user_id?: string | null;
+          user_turns?: number;
+          visitor_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_conversations_tenant_id_booking_id_fkey";
+            columns: ["tenant_id", "booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "ai_conversations_tenant_id_client_id_fkey";
+            columns: ["tenant_id", "client_id"];
+            isOneToOne: false;
+            referencedRelation: "clients";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "ai_conversations_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_messages: {
+        Row: {
+          content: NonNullable<Json>;
+          conversation_id: string;
+          created_at: string;
+          role: string;
+          seq: number;
+          stop_reason: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          content: NonNullable<Json>;
+          conversation_id: string;
+          created_at?: string;
+          role: string;
+          seq: number;
+          stop_reason?: string | null;
+        };
+        Update: {
+          content?: NonNullable<Json>;
+          conversation_id?: string;
+          created_at?: string;
+          role?: string;
+          seq?: number;
+          stop_reason?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_messages_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_conversations";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      ai_tool_calls: {
+        Row: {
+          booking_id: string | null;
+          conversation_id: string;
+          created_at: string;
+          duration_ms: number;
+          error: string | null;
+          id: number;
+          input: NonNullable<Json>;
+          ok: boolean;
+          output: Json | null;
+          tenant_id: string;
+          tool_name: string;
+          tool_use_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          booking_id?: string | null;
+          conversation_id: string;
+          created_at?: string;
+          duration_ms: number;
+          error?: string | null;
+          id?: never;
+          input: NonNullable<Json>;
+          ok: boolean;
+          output?: Json | null;
+          tenant_id: string;
+          tool_name: string;
+          tool_use_id: string;
+        };
+        Update: {
+          booking_id?: string | null;
+          conversation_id?: string;
+          created_at?: string;
+          duration_ms?: number;
+          error?: string | null;
+          id?: never;
+          input?: NonNullable<Json>;
+          ok?: boolean;
+          output?: Json | null;
+          tenant_id?: string;
+          tool_name?: string;
+          tool_use_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "ai_tool_calls_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_conversations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "ai_tool_calls_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       booking_events: {
         Row: {
           actor_kind: Database["public"]["Enums"]["actor_kind"];
@@ -490,6 +670,7 @@ export type Database = {
       dispatch_alerts: {
         Row: {
           booking_id: string | null;
+          conversation_id: string | null;
           created_at: string;
           id: string;
           kind: Database["public"]["Enums"]["alert_kind"];
@@ -503,6 +684,7 @@ export type Database = {
         ComputedFields: never;
         Insert: {
           booking_id?: string | null;
+          conversation_id?: string | null;
           created_at?: string;
           id?: string;
           kind: Database["public"]["Enums"]["alert_kind"];
@@ -515,6 +697,7 @@ export type Database = {
         };
         Update: {
           booking_id?: string | null;
+          conversation_id?: string | null;
           created_at?: string;
           id?: string;
           kind?: Database["public"]["Enums"]["alert_kind"];
@@ -526,6 +709,13 @@ export type Database = {
           tenant_id?: string;
         };
         Relationships: [
+          {
+            foreignKeyName: "dispatch_alerts_conversation_id_fkey";
+            columns: ["conversation_id"];
+            isOneToOne: false;
+            referencedRelation: "ai_conversations";
+            referencedColumns: ["id"];
+          },
           {
             foreignKeyName: "dispatch_alerts_tenant_id_booking_id_fkey";
             columns: ["tenant_id", "booking_id"];

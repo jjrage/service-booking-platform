@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
 
+import { aiConfig } from "@/server/ai/config";
 import { requireClient } from "@/server/auth/viewer";
+import { ChatWidget } from "@/ui/chat/chat-widget";
 import { DemoBanner } from "@/ui/demo-banner";
 import { Skeleton } from "@/ui/feedback";
 
@@ -28,6 +30,9 @@ export default function PortalLayout({ children }: LayoutProps<"/portal">) {
         </div>
       </header>
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6">{children}</main>
+      <Suspense>
+        <PortalChat />
+      </Suspense>
     </div>
   );
 }
@@ -51,5 +56,12 @@ async function PortalBrand() {
         </div>
       </div>
     </div>
+  );
+}
+
+async function PortalChat() {
+  const { client } = await requireClient();
+  return (
+    <ChatWidget slug={client.slug} businessName={client.name} enabled={aiConfig.enabled} signedIn />
   );
 }

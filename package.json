@@ -23,9 +23,11 @@
     "test:db": "supabase test db && vitest run --config vitest.integration.mts",
     "db:types": "supabase gen types typescript --local > src/db/database.types.ts && prettier --write src/db/database.types.ts",
     "db:seed": "tsx scripts/seed.ts",
-    "jobs:local": "tsx scripts/jobs-local.ts"
+    "jobs:local": "tsx scripts/jobs-local.ts",
+    "eval:ai": "vitest run --config vitest.ai-eval.mts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "0.128.0",
     "@stripe/react-stripe-js": "6.10.0",
     "@stripe/stripe-js": "9.16.0",
     "@supabase/ssr": "0.12.7",
