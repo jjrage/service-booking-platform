@@ -324,3 +324,42 @@ export async function outboxList(staff: StaffContext, filter: { status?: string 
   else if (filter.status) query = query.eq("status", filter.status as "sent");
   return unwrap(await query, "load messages");
 }
+
+export async function assistantConversations(staff: StaffContext) {
+  const db = await userDb();
+  return unwrap(
+    await db
+      .from("ai_conversations")
+      .select(
+        "id, channel, user_turns, input_tokens, output_tokens, cache_read_tokens, handed_off, started_at, last_activity_at, model, client:clients(full_name), booking:bookings(id, number, status)",
+      )
+      .eq("tenant_id", staff.tenantId)
+      .order("last_activity_at", { ascending: false })
+      .limit(100),
+    "load conversations",
+  );
+}
+
+export async function assistantConversation(staff: StaffContext, id: string) {
+  const db = await userDb();
+  const { data: conversation } = await db
+    .from("ai_conversations")
+    .select("*, client:clients(id, full_name), booking:bookings(id, number, status)")
+    .eq("id", id)
+    .eq("tenant_id", staff.tenantId)
+    .maybeSingle();
+  if (!conversation) return null;
+  const [messages, calls] = await Promise.all([
+    db
+      .from("ai_messages")
+      .select("seq, role, content, stop_reason, created_at")
+      .eq("conversation_id", id)
+      .order("seq"),
+    db.from("ai_tool_calls").select("*").eq("conversation_id", id).order("id"),
+  ]);
+  return {
+    conversation,
+    messages: unwrap(messages, "load messages"),
+    calls: unwrap(calls, "load tool calls"),
+  };
+}

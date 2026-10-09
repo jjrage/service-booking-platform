@@ -11,6 +11,7 @@ const links = [
   { href: "/admin/clients", label: "Clients" },
   { href: "/admin/payments", label: "Payments" },
   { href: "/admin/messages", label: "Messages" },
+  { href: "/admin/assistant", label: "AI assistant" },
   { href: "/admin/crews", label: "Crews & time off" },
   { href: "/admin/rules", label: "Prices & rules" },
   { href: "/admin/alerts", label: "Needs attention" },

@@ -208,12 +208,13 @@ export type ChargeResult = {
 };
 
 /**
- * Charges the client's saved card without them present: the balance after a visit, or a fee. The payment is
+ * Charges the client's saved card without them present: the balance after a visit, a fee, or the deposit
+ * of a booking a signed-in client made through the assistant. The payment is
  * recorded before it is confirmed, so the provider's webhook always finds it.
  */
 export async function chargeSavedCard(input: {
   bookingId: string;
-  purpose: Extract<PaymentPurpose, "balance" | "cancellation_fee" | "no_access_fee">;
+  purpose: Extract<PaymentPurpose, "deposit" | "balance" | "cancellation_fee" | "no_access_fee">;
   amountCents: number;
   description: string;
 }): Promise<ChargeResult> {

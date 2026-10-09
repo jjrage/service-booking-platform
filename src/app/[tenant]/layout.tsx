@@ -1,7 +1,10 @@
 import Link from "next/link";
 import { Suspense } from "react";
 
+import { aiConfig } from "@/server/ai/config";
+import { getViewer } from "@/server/auth/viewer";
 import { buttonClasses } from "@/ui/button";
+import { ChatWidget } from "@/ui/chat/chat-widget";
 import { DemoBanner } from "@/ui/demo-banner";
 import { Skeleton } from "@/ui/feedback";
 
@@ -19,6 +22,9 @@ export default function TenantLayout({ children, params }: LayoutProps<"/[tenant
         </div>
       </header>
       <div className="flex flex-1 flex-col">{children}</div>
+      <Suspense>
+        <TenantChat params={params} />
+      </Suspense>
       <footer className="border-t border-zinc-200 bg-white">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-sm text-zinc-500 sm:flex-row sm:justify-between sm:px-6">
           <Suspense fallback={<span />}>
@@ -64,5 +70,18 @@ async function TenantContact({ params }: { params: Promise<{ tenant: string }> }
     <span>
       {tenant.name} · {tenant.phone} · {tenant.contactEmail}
     </span>
+  );
+}
+
+async function TenantChat({ params }: { params: Promise<{ tenant: string }> }) {
+  const { tenant } = await requireCatalog(params);
+  const viewer = await getViewer();
+  return (
+    <ChatWidget
+      slug={tenant.slug}
+      businessName={tenant.name}
+      enabled={aiConfig.enabled}
+      signedIn={viewer?.client?.tenantId === tenant.id}
+    />
   );
 }
