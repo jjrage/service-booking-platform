@@ -13,7 +13,7 @@ is a separate tenant.
 > **Status:** feature-complete. Live demo: _link after deployment_. Every role is one click away on the demo's
 > landing page, and the data resets every night.
 
-<!-- Demo video and an AI chat screenshot go here. -->
+<!-- Demo video goes here. -->
 
 <table>
   <tr>
@@ -22,8 +22,18 @@ is a separate tenant.
       <br><sub>Booking: an instant quote and the crews' real free windows</sub>
     </td>
     <td width="50%">
+      <img src="docs/screenshots/ai-chat.png" alt="AI assistant: a quote and free windows from the booking system">
+      <br><sub>AI assistant: the price and windows come from the same server functions</sub>
+    </td>
+  </tr>
+  <tr>
+    <td>
       <img src="docs/screenshots/admin-calendar.png" alt="Admin console: crew calendar for the week">
       <br><sub>Admin: crew calendar; drag a visit to another crew</sub>
+    </td>
+    <td>
+      <img src="docs/screenshots/admin-reports.png" alt="Admin console: reports">
+      <br><sub>Reports: revenue, prepaid share, cancellations, crew utilization</sub>
     </td>
   </tr>
   <tr>
@@ -31,17 +41,12 @@ is a separate tenant.
       <img src="docs/screenshots/portal-cancel.png" alt="Client portal: the fee shown before skipping a visit">
       <br><sub>Client portal: the fee is shown before anything changes</sub>
     </td>
-    <td>
-      <img src="docs/screenshots/admin-reports.png" alt="Admin console: reports">
-      <br><sub>Reports: revenue, prepaid share, cancellations, crew utilization</sub>
+    <td align="center">
+      <img src="docs/screenshots/crew-job.png" width="55%" alt="Crew app on a phone: a job with access notes and a checklist">
+      <br><sub>Crew app: the job, access notes and checklist on a phone</sub>
     </td>
   </tr>
 </table>
-
-<p align="center">
-  <img src="docs/screenshots/crew-job.png" width="280" alt="Crew app on a phone: a job with access notes and a checklist">
-  <br><sub>Crew app: the job, access notes and checklist on a phone</sub>
-</p>
 
 ## What a business gets
 
@@ -227,8 +232,10 @@ repeated or late webhook changes nothing, and a payment that arrives after its b
 instead of silently confirming.
 
 **An AI assistant that cannot make things up.** The model never sees a price list or a calendar in its prompt; it
-calls tools, and the tools are thin wrappers over the same server functions as the forms. Tool inputs have strict
-schemas. The slot-hold token stays on the server, a guest's booking is always "pending payment" with a payment link,
+calls tools, and the tools are thin wrappers over the same server functions as the forms. Every tool input is
+validated on the server, and most tools use the API's strict mode, so the model cannot send a malformed call. (The
+real API caps the combined size of strict schemas per request, which a local stand-in never showed: the booking
+tool opts out and relies on server validation.) The slot-hold token stays on the server, a guest's booking is always "pending payment" with a payment link,
 and the chat draws booking cards from tool results, not from the model's text. Cancel and reschedule tools first
 return a preview of the fee and act only on a second call. Every message and tool call (input, output, success,
 timing) is stored append-only and visible in the admin console. Evals cover the cases that matter: an invented
@@ -264,14 +271,33 @@ of the demo, which runs on its own core.
   payment, portal changes, crew operations, the outbox, the AI tools, and a full chat turn against a local stand-in
   for the Messages API.
 - **End-to-end** (Playwright): a guest books, has a card declined, pays the deposit, and the owner sees the booking.
-- **AI evals**: 6 adversarial scenarios against the real model (skipped without an API key).
+- **Stripe test mode**: a deposit with a test card, the balance charged off-session to the saved card, a partial
+  refund, and a saved plan card that later declines and alerts the office. Stripe's own events go through the
+  webhook's signature check and handling.
+- **AI evals**: 6 adversarial scenarios against the real model; each writes its transcript and token cost to
+  `test-results/ai-eval.md`.
 
 ```bash
-npm run check       # typecheck, lint, format check, unit tests
-npm run test:db     # pgTAP and integration tests (needs the local Supabase stack)
-npm run test:e2e    # Playwright, against the seeded demo business
-npm run eval:ai     # AI evals, needs ANTHROPIC_API_KEY
+npm run check        # typecheck, lint, format check, unit tests
+npm run test:db      # pgTAP and integration tests (needs the local Supabase stack)
+npm run test:e2e     # Playwright, against the seeded demo business
+npm run test:stripe  # payment flows against Stripe test mode, needs test keys
+npm run eval:ai      # AI evals, needs ANTHROPIC_API_KEY
 ```
+
+## Cost of the assistant
+
+Measured in the eval runs on Claude Sonnet 5.5 at medium effort, at list prices ($2 / $10 per million input /
+output tokens) as of October 2026, each conversation starting with a cold prompt cache:
+
+| Conversation                       | Tool calls | Cost     |
+| ---------------------------------- | ---------- | -------- |
+| One question with a quote          | 3          | ≈ $0.025 |
+| Three messages ending in a booking | 6          | ≈ $0.057 |
+
+The system prompt and tool definitions (about 7,500 tokens) are cached, so conversations that follow within a few
+minutes pay a tenth of the input price for them. The model is one setting (`ANTHROPIC_MODEL`); per-visitor and
+per-business daily limits plus a spending limit on the API key cap the cost of a public demo.
 
 ## Running it locally
 
