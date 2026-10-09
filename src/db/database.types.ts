@@ -668,6 +668,91 @@ export type Database = {
           },
         ];
       };
+      outbox: {
+        Row: {
+          attempts: number;
+          body_html: string | null;
+          body_text: string | null;
+          booking_id: string | null;
+          channel: Database["public"]["Enums"]["outbox_channel"];
+          claimed_at: string | null;
+          created_at: string;
+          dedupe_key: string;
+          id: string;
+          kind: string;
+          last_error: string | null;
+          payload: NonNullable<Json>;
+          provider: string | null;
+          provider_message_id: string | null;
+          send_after: string;
+          sent_at: string | null;
+          status: Database["public"]["Enums"]["outbox_status"];
+          subject: string | null;
+          tenant_id: string;
+          to_address: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempts?: number;
+          body_html?: string | null;
+          body_text?: string | null;
+          booking_id?: string | null;
+          channel?: Database["public"]["Enums"]["outbox_channel"];
+          claimed_at?: string | null;
+          created_at?: string;
+          dedupe_key: string;
+          id?: string;
+          kind: string;
+          last_error?: string | null;
+          payload?: NonNullable<Json>;
+          provider?: string | null;
+          provider_message_id?: string | null;
+          send_after?: string;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["outbox_status"];
+          subject?: string | null;
+          tenant_id: string;
+          to_address: string;
+        };
+        Update: {
+          attempts?: number;
+          body_html?: string | null;
+          body_text?: string | null;
+          booking_id?: string | null;
+          channel?: Database["public"]["Enums"]["outbox_channel"];
+          claimed_at?: string | null;
+          created_at?: string;
+          dedupe_key?: string;
+          id?: string;
+          kind?: string;
+          last_error?: string | null;
+          payload?: NonNullable<Json>;
+          provider?: string | null;
+          provider_message_id?: string | null;
+          send_after?: string;
+          sent_at?: string | null;
+          status?: Database["public"]["Enums"]["outbox_status"];
+          subject?: string | null;
+          tenant_id?: string;
+          to_address?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "outbox_tenant_id_booking_id_fkey";
+            columns: ["tenant_id", "booking_id"];
+            isOneToOne: false;
+            referencedRelation: "bookings";
+            referencedColumns: ["tenant_id", "id"];
+          },
+          {
+            foreignKeyName: "outbox_tenant_id_fkey";
+            columns: ["tenant_id"];
+            isOneToOne: false;
+            referencedRelation: "tenants";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       payment_events: {
         Row: {
           event_id: string;
@@ -1210,6 +1295,37 @@ export type Database = {
         };
         Returns: number;
       };
+      cmd_claim_outbox: {
+        Args: { p_limit?: number };
+        Returns: {
+          attempts: number;
+          body_html: string | null;
+          body_text: string | null;
+          booking_id: string | null;
+          channel: Database["public"]["Enums"]["outbox_channel"];
+          claimed_at: string | null;
+          created_at: string;
+          dedupe_key: string;
+          id: string;
+          kind: string;
+          last_error: string | null;
+          payload: NonNullable<Json>;
+          provider: string | null;
+          provider_message_id: string | null;
+          send_after: string;
+          sent_at: string | null;
+          status: Database["public"]["Enums"]["outbox_status"];
+          subject: string | null;
+          tenant_id: string;
+          to_address: string;
+        }[];
+        SetofOptions: {
+          from: "*";
+          to: "outbox";
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       cmd_complete_job: {
         Args: {
           p_actor: string;
@@ -1258,6 +1374,19 @@ export type Database = {
           bookings_expired: number;
           holds_removed: number;
         }[];
+      };
+      cmd_finish_outbox: {
+        Args: {
+          p_body_html: string;
+          p_body_text: string;
+          p_error: string;
+          p_id: string;
+          p_ok: boolean;
+          p_provider: string;
+          p_provider_message_id: string;
+          p_subject: string;
+        };
+        Returns: Database["public"]["Enums"]["outbox_status"];
       };
       cmd_hold_slot: {
         Args: {
@@ -1366,6 +1495,7 @@ export type Database = {
         };
         Returns: undefined;
       };
+      cmd_schedule_reminders: { Args: { p_tenant_id: string }; Returns: number };
       cmd_start_payment: {
         Args: {
           p_amount_cents: number;
@@ -1430,6 +1560,8 @@ export type Database = {
         "pending_payment" | "confirmed" | "completed" | "no_access" | "cancelled" | "expired";
       client_source: "web" | "portal" | "admin" | "ai" | "import";
       member_role: "owner" | "dispatcher" | "cleaner";
+      outbox_channel: "email" | "sms_log";
+      outbox_status: "pending" | "sending" | "sent" | "failed" | "cancelled";
       payment_provider: "stripe" | "simulated";
       payment_purpose: "deposit" | "card_setup" | "balance" | "cancellation_fee" | "no_access_fee";
       payment_status:
@@ -1581,6 +1713,8 @@ export const Constants = {
       ],
       client_source: ["web", "portal", "admin", "ai", "import"],
       member_role: ["owner", "dispatcher", "cleaner"],
+      outbox_channel: ["email", "sms_log"],
+      outbox_status: ["pending", "sending", "sent", "failed", "cancelled"],
       payment_provider: ["stripe", "simulated"],
       payment_purpose: ["deposit", "card_setup", "balance", "cancellation_fee", "no_access_fee"],
       payment_status: [

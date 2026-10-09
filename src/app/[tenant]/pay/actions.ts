@@ -3,6 +3,7 @@
 import { z } from "zod";
 
 import { afterPaymentEvent } from "@/server/payments/after-event";
+import { sendSoon } from "@/server/notifications/sender";
 import { completeSimulatedCheckout } from "@/server/payments/service";
 import { simulatedTestCards } from "@/server/payments/simulated";
 import { bookingAccessToken, verifyBookingAccessToken } from "@/server/signing";
@@ -42,6 +43,7 @@ export async function simulatedPayAction(
 
   const result = await completeSimulatedCheckout(bookingId, card, authenticated);
   await afterPaymentEvent(result);
+  sendSoon();
   if (result.paymentStatus === "succeeded") {
     return {
       ok: true,

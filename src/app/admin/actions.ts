@@ -18,6 +18,7 @@ import { catalogTag, loadCatalog } from "@/server/catalog";
 import { adminDb } from "@/server/db/admin";
 import { CommandError, ensureOk, unwrap } from "@/server/db/errors";
 import { toRange } from "@/server/db/ranges";
+import { sendSoon } from "@/server/notifications/sender";
 import { refundPayment } from "@/server/payments/service";
 
 /**
@@ -113,6 +114,7 @@ export async function staffRescheduleAction(
     return failure(error);
   }
   refresh();
+  sendSoon();
   return { ok: true, message: "Moved." };
 }
 
@@ -135,6 +137,7 @@ export async function staffCancelAction(
     return failure(error);
   }
   refresh();
+  sendSoon();
   return { ok: true, message: "Cancelled." };
 }
 
@@ -149,6 +152,7 @@ export async function staffCompleteAction(bookingId: string): Promise<Result> {
       photoPaths: [],
     });
     refresh();
+    sendSoon();
     return charge.status === "succeeded"
       ? { ok: true, message: "Completed and charged." }
       : {
@@ -168,6 +172,7 @@ export async function staffNoAccessAction(bookingId: string, note: string): Prom
     return failure(error);
   }
   refresh();
+  sendSoon();
   return { ok: true, message: "Marked as no access; the lockout fee was applied." };
 }
 

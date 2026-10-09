@@ -309,3 +309,18 @@ export async function ruleHistory(staff: StaffContext) {
     "load rule versions",
   );
 }
+
+export async function outboxList(staff: StaffContext, filter: { status?: string }) {
+  const db = await userDb();
+  let query = db
+    .from("outbox")
+    .select(
+      "id, kind, channel, to_address, status, send_after, sent_at, provider, subject, body_html, body_text, attempts, last_error, booking:bookings(id, number)",
+    )
+    .eq("tenant_id", staff.tenantId)
+    .order("send_after", { ascending: false })
+    .limit(150);
+  if (filter.status === "scheduled") query = query.in("status", ["pending", "sending"]);
+  else if (filter.status) query = query.eq("status", filter.status as "sent");
+  return unwrap(await query, "load messages");
+}
