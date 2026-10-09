@@ -25,7 +25,8 @@
     "db:seed": "tsx scripts/seed.ts",
     "jobs:local": "tsx scripts/jobs-local.ts",
     "eval:ai": "vitest run --config vitest.ai-eval.mts",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:stripe": "vitest run --config vitest.stripe.mts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",
