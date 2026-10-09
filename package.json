@@ -24,7 +24,8 @@
     "db:types": "supabase gen types typescript --local > src/db/database.types.ts && prettier --write src/db/database.types.ts",
     "db:seed": "tsx scripts/seed.ts",
     "jobs:local": "tsx scripts/jobs-local.ts",
-    "eval:ai": "vitest run --config vitest.ai-eval.mts"
+    "eval:ai": "vitest run --config vitest.ai-eval.mts",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "0.128.0",
