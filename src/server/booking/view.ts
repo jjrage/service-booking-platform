@@ -35,9 +35,7 @@ export type GuestBooking = {
   card: { brand: string; last4: string } | null;
 };
 
-export async function loadGuestBooking(
-  bookingId: string,
-): Promise<GuestBooking | null> {
+export async function loadGuestBooking(bookingId: string): Promise<GuestBooking | null> {
   const db = adminDb();
   const { data: booking } = await db
     .from("bookings")
@@ -118,17 +116,10 @@ export async function loadGuestBooking(
     recurringTotalCents: booking.quote.recurringVisit?.totalCents ?? null,
     clientName: booking.client.full_name,
     clientEmail: booking.client.email,
-    address: [
-      p.address_line1,
-      p.address_line2,
-      `${p.city}, ${p.state} ${p.zip}`,
-    ]
+    address: [p.address_line1, p.address_line2, `${p.city}, ${p.state} ${p.zip}`]
       .filter(Boolean)
       .join(", "),
-    paidCents: (payments.data ?? []).reduce(
-      (sum, row) => sum + row.amount_cents,
-      0,
-    ),
+    paidCents: (payments.data ?? []).reduce((sum, row) => sum + row.amount_cents, 0),
     card:
       billing.data?.card_brand && billing.data.card_last4
         ? { brand: billing.data.card_brand, last4: billing.data.card_last4 }

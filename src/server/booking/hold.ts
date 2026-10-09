@@ -70,11 +70,7 @@ export async function holdWindow(
         window?.status === "full"
           ? "That window was just booked."
           : "That window cannot be booked.",
-      alternatives: await alternativesFrom(
-        catalog,
-        request.date,
-        request.durationMinutes,
-      ),
+      alternatives: await alternativesFrom(catalog, request.date, request.durationMinutes),
     };
   }
 
@@ -89,11 +85,7 @@ export async function holdWindow(
       ok: false,
       reason: "taken",
       message: "Someone booked that window a moment before you.",
-      alternatives: await alternativesFrom(
-        catalog,
-        request.date,
-        request.durationMinutes,
-      ),
+      alternatives: await alternativesFrom(catalog, request.date, request.durationMinutes),
     };
   }
   const [row] = unwrap(result, "hold slot");
@@ -114,8 +106,5 @@ export async function holdWindow(
 }
 
 export async function releaseHold(token: string): Promise<void> {
-  ensureOk(
-    await adminDb().rpc("cmd_release_hold", { p_hold_token: token }),
-    "release hold",
-  );
+  ensureOk(await adminDb().rpc("cmd_release_hold", { p_hold_token: token }), "release hold");
 }

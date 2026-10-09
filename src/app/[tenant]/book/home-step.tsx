@@ -35,8 +35,7 @@ export function HomeStep({
   const money = (cents: number) => formatMoney(cents, currency);
   const service = pricing.services[request.service];
   const zone = pricing.zones.find((z) => z.zips.includes(request.zip));
-  const set = (patch: Partial<QuoteInput>) =>
-    onChange({ ...request, ...patch });
+  const set = (patch: Partial<QuoteInput>) => onChange({ ...request, ...patch });
   const setHome = (patch: Partial<QuoteInput["home"]>) =>
     set({ home: { ...request.home, ...patch } });
   const setAddon = (code: string, quantity: number) => {
@@ -46,19 +45,13 @@ export function HomeStep({
     set({ addons });
   };
   const instant = context.services.filter((s) => s.bookingMode === "instant");
-  const quoted = context.services.filter(
-    (s) => s.bookingMode === "quote_request",
-  );
+  const quoted = context.services.filter((s) => s.bookingMode === "quote_request");
 
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-          Get your price
-        </h1>
-        <p className="mt-1 text-zinc-600">
-          Tell us about your home. The price updates as you go.
-        </p>
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Get your price</h1>
+        <p className="mt-1 text-zinc-600">Tell us about your home. The price updates as you go.</p>
       </div>
 
       <Card>
@@ -72,9 +65,7 @@ export function HomeStep({
                 onClick={() =>
                   set({
                     service: s.code,
-                    frequency: pricing.services[s.code]?.recurring
-                      ? request.frequency
-                      : "one_time",
+                    frequency: pricing.services[s.code]?.recurring ? request.frequency : "one_time",
                   })
                 }
                 className={cn(
@@ -84,19 +75,15 @@ export function HomeStep({
                     : "bg-white ring-zinc-200 hover:ring-zinc-300",
                 )}
               >
-                <span className="block font-medium text-zinc-900">
-                  {s.name}
-                </span>
-                <span className="mt-1 block text-xs text-zinc-500">
-                  {s.description}
-                </span>
+                <span className="block font-medium text-zinc-900">{s.name}</span>
+                <span className="mt-1 block text-xs text-zinc-500">{s.description}</span>
               </button>
             ))}
           </div>
           {quoted.length > 0 && (
             <p className="text-sm text-zinc-500">
-              {quoted.map((s) => s.name).join(" and ")} are quoted after we see
-              photos — call {context.phone}.
+              {quoted.map((s) => s.name).join(" and ")} are quoted after we see photos — call{" "}
+              {context.phone}.
             </p>
           )}
         </CardBody>
@@ -134,10 +121,7 @@ export function HomeStep({
               value={request.home.sqft}
               onChange={(e) =>
                 setHome({
-                  sqft: Math.min(
-                    10000,
-                    Math.max(200, Number(e.target.value) || 200),
-                  ),
+                  sqft: Math.min(10000, Math.max(200, Number(e.target.value) || 200)),
                 })
               }
               className="max-w-36"
@@ -165,9 +149,7 @@ export function HomeStep({
               placeholder="27609"
               value={request.zip}
               aria-invalid={/^\d{5}$/.test(request.zip) && !zone}
-              onChange={(e) =>
-                set({ zip: e.target.value.replace(/\D/g, "").slice(0, 5) })
-              }
+              onChange={(e) => set({ zip: e.target.value.replace(/\D/g, "").slice(0, 5) })}
               className="max-w-36"
             />
           </Field>
@@ -230,9 +212,7 @@ export function HomeStep({
                       {frequencyNames[frequency]}
                     </span>
                     {discount > 0 && (
-                      <span className="text-xs text-emerald-700">
-                        {discount}% off
-                      </span>
+                      <span className="text-xs text-emerald-700">{discount}% off</span>
                     )}
                   </button>
                 );
@@ -264,9 +244,7 @@ export function HomeStep({
                 )}
               >
                 <div className="min-w-0">
-                  <p className="text-sm font-medium text-zinc-900">
-                    {addon.name}
-                  </p>
+                  <p className="text-sm font-medium text-zinc-900">{addon.name}</p>
                   <p className="tabular text-xs text-zinc-500">
                     {money(addon.cents)}
                     {addon.per_unit ? " each" : ""}
@@ -307,9 +285,7 @@ export function HomeStep({
               <span className="tabular font-semibold text-zinc-900">
                 {money(priced.quote.firstVisit.totalCents)}
               </span>{" "}
-              {priced.quote.needsReview && (
-                <Badge tone="warning">reviewed by the office</Badge>
-              )}
+              {priced.quote.needsReview && <Badge tone="warning">reviewed by the office</Badge>}
             </>
           ) : (
             "Enter your ZIP code to see the price."
@@ -337,13 +313,7 @@ function CountField({
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-sm font-medium text-zinc-800">{label}</span>
-      <Stepper
-        label={label.toLowerCase()}
-        value={value}
-        min={min}
-        max={10}
-        onChange={onChange}
-      />
+      <Stepper label={label.toLowerCase()} value={value} min={min} max={10} onChange={onChange} />
     </div>
   );
 }

@@ -3,10 +3,7 @@ import type { Instant, LocalDate, LocalTime } from "@/domain/time";
 export { formatMoney } from "@/domain/money";
 
 /** "Monday, October 12" (long) or "Mon, Oct 12" (short) for a business-local date. */
-export function formatDate(
-  date: LocalDate,
-  style: "long" | "short" = "short",
-): string {
+export function formatDate(date: LocalDate, style: "long" | "short" = "short"): string {
   // Noon UTC on that date never crosses a day boundary when formatted in UTC.
   return new Intl.DateTimeFormat("en-US", {
     timeZone: "UTC",
@@ -40,6 +37,19 @@ export function formatWindow(start: LocalTime, end: LocalTime): string {
     : `${a.text} ${a.period}–${b.text} ${b.period}`;
 }
 
+/** "8–9 AM", or "11 AM–12 PM" across noon: for tight grids. Minutes are shown only when not on the hour. */
+export function formatWindowShort(start: LocalTime, end: LocalTime): string {
+  const short = (time: LocalTime) => {
+    const { text, period } = clock(time);
+    return { text: text.endsWith(":00") ? text.slice(0, -3) : text, period };
+  };
+  const a = short(start);
+  const b = short(end);
+  return a.period === b.period
+    ? `${a.text}–${b.text} ${b.period}`
+    : `${a.text} ${a.period}–${b.text} ${b.period}`;
+}
+
 /** An instant shown in the business's time zone. */
 export function formatInstant(
   instant: Instant,
@@ -52,9 +62,7 @@ export function formatInstant(
     minute: "2-digit",
   },
 ): string {
-  return new Intl.DateTimeFormat("en-US", { timeZone, ...options }).format(
-    new Date(instant),
-  );
+  return new Intl.DateTimeFormat("en-US", { timeZone, ...options }).format(new Date(instant));
 }
 
 /** "3 h 45 min" */

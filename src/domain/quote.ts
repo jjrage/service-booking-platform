@@ -72,8 +72,7 @@ export type QuoteErrorCode =
   | "too_many_units";
 
 export type QuoteResult =
-  | { ok: true; quote: Quote }
-  | { ok: false; error: { code: QuoteErrorCode; message: string } };
+  { ok: true; quote: Quote } | { ok: false; error: { code: QuoteErrorCode; message: string } };
 
 const DURATION_STEP_MINUTES = 15;
 
@@ -112,10 +111,7 @@ export function quote(rules: PricingRules, request: QuoteRequest): QuoteResult {
     );
   }
   if (input.frequency !== "one_time" && !service.recurring) {
-    return fail(
-      "recurring_not_offered",
-      "This service is booked as a one-time visit only.",
-    );
+    return fail("recurring_not_offered", "This service is booked as a one-time visit only.");
   }
 
   const zone = rules.zones.find((z) => z.zips.includes(input.zip));
@@ -141,24 +137,14 @@ export function quote(rules: PricingRules, request: QuoteRequest): QuoteResult {
 
   if (input.frequency !== "one_time") {
     const upgrade = rules.first_visit;
-    if (
-      upgrade &&
-      !input.recentlyCleaned &&
-      upgrade.upgrade_to !== input.service
-    ) {
+    if (upgrade && !input.recentlyCleaned && upgrade.upgrade_to !== input.service) {
       firstService = upgrade.upgrade_to;
       notes.push(
         `The first visit is priced as a ${upgrade.upgrade_to} clean: the home had no professional cleaning in the last ${upgrade.if_no_professional_clean_days} days.`,
       );
     }
     const discount = rules.frequency_discount_percent[input.frequency];
-    recurringVisit = priceVisit(
-      rules,
-      input,
-      input.service,
-      discount,
-      surcharge,
-    );
+    recurringVisit = priceVisit(rules, input, input.service, discount, surcharge);
     if (discount > 0) {
       notes.push(
         `${frequencyLabel(input.frequency)} visits get ${discount}% off from the second visit.`,
@@ -167,12 +153,9 @@ export function quote(rules: PricingRules, request: QuoteRequest): QuoteResult {
   }
 
   const firstVisit = priceVisit(rules, input, firstService, 0, surcharge);
-  const needsReview =
-    input.condition === "heavy" && rules.condition.heavy.needs_review;
+  const needsReview = input.condition === "heavy" && rules.condition.heavy.needs_review;
   if (needsReview) {
-    notes.push(
-      "Heavy condition: the office confirms the price after seeing photos.",
-    );
+    notes.push("Heavy condition: the office confirms the price after seeing photos.");
   }
 
   const depositCents =
@@ -236,12 +219,7 @@ function priceVisit(
     }
   };
 
-  extra(
-    "bedrooms",
-    "Extra bedrooms",
-    input.home.bedrooms - included.bedrooms,
-    size.bedroom,
-  );
+  extra("bedrooms", "Extra bedrooms", input.home.bedrooms - included.bedrooms, size.bedroom);
   extra(
     "full_baths",
     "Extra full baths",
@@ -257,25 +235,17 @@ function priceVisit(
   extra(
     "sqft",
     `Extra size (per ${size.sqft_step.size.toLocaleString("en-US")} sq ft over ${included.sqft.toLocaleString("en-US")})`,
-    Math.ceil(
-      Math.max(0, input.home.sqft - included.sqft) / size.sqft_step.size,
-    ),
+    Math.ceil(Math.max(0, input.home.sqft - included.sqft) / size.sqft_step.size),
     size.sqft_step,
   );
 
   for (const [code, quantity] of Object.entries(input.addons)) {
     const addon = rules.addons[code]!;
-    extra(
-      `addon:${code}`,
-      addon.name,
-      addon.per_unit ? quantity : Math.min(quantity, 1),
-      addon,
-    );
+    extra(`addon:${code}`, addon.name, addon.per_unit ? quantity : Math.min(quantity, 1), addon);
   }
 
   const sum = () => lines.reduce((total, line) => total + line.cents, 0);
-  const sumMinutes = () =>
-    lines.reduce((total, line) => total + line.minutes, 0);
+  const sumMinutes = () => lines.reduce((total, line) => total + line.minutes, 0);
 
   if (input.condition === "heavy") {
     const { percent } = rules.condition.heavy;
@@ -318,7 +288,6 @@ function priceVisit(
     service: serviceCode,
     lines,
     totalCents: sum(),
-    durationMinutes:
-      Math.ceil(sumMinutes() / DURATION_STEP_MINUTES) * DURATION_STEP_MINUTES,
+    durationMinutes: Math.ceil(sumMinutes() / DURATION_STEP_MINUTES) * DURATION_STEP_MINUTES,
   };
 }

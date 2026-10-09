@@ -1,5 +1,6 @@
 import { serverEnv } from "@/config/server-env";
 import { stripeProvider } from "@/server/payments";
+import { afterPaymentEvent } from "@/server/payments/after-event";
 import { applyPaymentEvent } from "@/server/payments/service";
 
 /**
@@ -31,5 +32,6 @@ export async function POST(request: Request) {
 
   // An error here returns 500, and Stripe retries the event later.
   const result = await applyPaymentEvent(event);
+  await afterPaymentEvent(result);
   return Response.json({ received: true, applied: result.applied });
 }

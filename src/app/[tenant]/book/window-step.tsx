@@ -9,12 +9,7 @@ import { Button } from "@/ui/button";
 import { Card } from "@/ui/card";
 import { cn } from "@/ui/cn";
 import { Alert, Skeleton, Spinner } from "@/ui/feedback";
-import {
-  formatDate,
-  formatDuration,
-  formatWindow,
-  shiftDate,
-} from "@/ui/format";
+import { formatDate, formatDuration, formatWindow, shiftDate } from "@/ui/format";
 
 import { holdWindowAction, loadWindowsAction } from "./actions";
 import type { WizardContext } from "./booking-wizard";
@@ -105,11 +100,8 @@ export function WindowStep({
         </h1>
         <p className="mt-1 text-zinc-600">
           The crew arrives within the window.
-          {data && (
-            <> Your visit takes about {formatDuration(data.durationMinutes)}.</>
-          )}{" "}
-          We hold your window for {context.holdMinutes} minutes while you finish
-          booking.
+          {data && <> Your visit takes about {formatDuration(data.durationMinutes)}.</>} We hold
+          your window for {context.holdMinutes} minutes while you finish booking.
         </p>
       </div>
 
@@ -141,12 +133,8 @@ export function WindowStep({
           <Button
             variant="ghost"
             size="sm"
-            disabled={
-              loading || !data || !visibleFrom || visibleFrom <= data.first
-            }
-            onClick={() =>
-              setFrom(visibleFrom ? shiftDate(visibleFrom, -14) : undefined)
-            }
+            disabled={loading || !data || !visibleFrom || visibleFrom <= data.first}
+            onClick={() => setFrom(visibleFrom ? shiftDate(visibleFrom, -14) : undefined)}
           >
             ← Earlier
           </Button>
@@ -159,9 +147,7 @@ export function WindowStep({
             variant="ghost"
             size="sm"
             disabled={loading || !data || !visibleTo || visibleTo >= data.last}
-            onClick={() =>
-              setFrom(visibleTo ? shiftDate(visibleTo, 1) : undefined)
-            }
+            onClick={() => setFrom(visibleTo ? shiftDate(visibleTo, 1) : undefined)}
           >
             Later →
           </Button>
@@ -174,9 +160,7 @@ export function WindowStep({
             ))}
           </div>
         ) : (
-          <ul
-            className={cn("divide-y divide-zinc-100", loading && "opacity-50")}
-          >
+          <ul className={cn("divide-y divide-zinc-100", loading && "opacity-50")}>
             {data.days.map((day) => (
               <li
                 key={day.date}
@@ -197,9 +181,7 @@ export function WindowStep({
                         <button
                           key={key}
                           type="button"
-                          disabled={
-                            w.status !== "available" || holding !== null
-                          }
+                          disabled={w.status !== "available" || holding !== null}
                           onClick={() => pick(w)}
                           className={cn(
                             "flex h-10 items-center justify-center gap-2 rounded-lg px-2 text-sm ring-1 transition",

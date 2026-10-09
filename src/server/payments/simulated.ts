@@ -75,9 +75,7 @@ function cardDetails(card: SimulatedTestCard): CardDetails {
   };
 }
 
-const declines: Partial<
-  Record<SimulatedTestCard, { code: string; message: string }>
-> = {
+const declines: Partial<Record<SimulatedTestCard, { code: string; message: string }>> = {
   declined: { code: "card_declined", message: "Your card was declined." },
   insufficient_funds: {
     code: "insufficient_funds",
@@ -120,10 +118,7 @@ export function simulateCheckout(
     };
   }
   // Like Stripe's 0341 card: saving it works, charging it does not.
-  const decline =
-    session.mode === "setup" && card === "fails_later"
-      ? undefined
-      : declines[card];
+  const decline = session.mode === "setup" && card === "fails_later" ? undefined : declines[card];
   if (decline) {
     return {
       ...base,
@@ -148,9 +143,7 @@ export class SimulatedPaymentProvider implements PaymentProvider {
     return client.existingRef ?? `sim_cus_${client.id}`;
   }
 
-  async createCheckout(input: {
-    idempotencyKey: string;
-  }): Promise<CheckoutSession> {
+  async createCheckout(input: { idempotencyKey: string }): Promise<CheckoutSession> {
     const paymentRef = stableId("sim_pi", input.idempotencyKey);
     return {
       provider: this.name,
@@ -160,9 +153,7 @@ export class SimulatedPaymentProvider implements PaymentProvider {
     };
   }
 
-  async createCardSetup(input: {
-    idempotencyKey: string;
-  }): Promise<CheckoutSession> {
+  async createCardSetup(input: { idempotencyKey: string }): Promise<CheckoutSession> {
     const paymentRef = stableId("sim_seti", input.idempotencyKey);
     return {
       provider: this.name,
@@ -172,10 +163,7 @@ export class SimulatedPaymentProvider implements PaymentProvider {
     };
   }
 
-  async resumeCheckout(
-    paymentRef: string,
-    mode: "payment" | "setup",
-  ): Promise<CheckoutSession> {
+  async resumeCheckout(paymentRef: string, mode: "payment" | "setup"): Promise<CheckoutSession> {
     return {
       provider: this.name,
       paymentRef,
@@ -184,10 +172,7 @@ export class SimulatedPaymentProvider implements PaymentProvider {
     };
   }
 
-  async createOffSessionCharge(input: {
-    paymentMethodRef: string;
-    idempotencyKey: string;
-  }) {
+  async createOffSessionCharge(input: { paymentMethodRef: string; idempotencyKey: string }) {
     // The saved test card travels in the reference, so confirming needs no state between the two calls.
     const card = input.paymentMethodRef.replace(/^sim_pm_/, "");
     return {
@@ -201,8 +186,7 @@ export class SimulatedPaymentProvider implements PaymentProvider {
       return {
         status: "requires_action",
         failureCode: "authentication_required",
-        failureMessage:
-          "The card requires the client to authenticate this payment.",
+        failureMessage: "The card requires the client to authenticate this payment.",
       };
     }
     const decline = card ? declines[card] : undefined;

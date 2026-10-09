@@ -7,13 +7,7 @@ import { AutoRefresh } from "@/ui/auto-refresh";
 import { ButtonLink } from "@/ui/button";
 import { Card } from "@/ui/card";
 import { Alert, Badge, Skeleton, Spinner } from "@/ui/feedback";
-import {
-  cardLabel,
-  formatDate,
-  formatDuration,
-  formatMoney,
-  formatWindow,
-} from "@/ui/format";
+import { cardLabel, formatDate, formatDuration, formatMoney, formatWindow } from "@/ui/format";
 
 export const metadata: Metadata = {
   title: "Your booking",
@@ -54,16 +48,12 @@ const statusText: Record<string, string> = {
 async function BookingDetails({
   params,
   searchParams,
-}: Pick<
-  PageProps<"/[tenant]/bookings/[bookingId]">,
-  "params" | "searchParams"
->) {
+}: Pick<PageProps<"/[tenant]/bookings/[bookingId]">, "params" | "searchParams">) {
   const { tenant, bookingId } = await params;
   const { t } = await searchParams;
   const token = typeof t === "string" ? t : undefined;
   const booking =
-    /^[0-9a-f-]{36}$/.test(bookingId) &&
-    verifyBookingAccessToken(bookingId, token)
+    /^[0-9a-f-]{36}$/.test(bookingId) && verifyBookingAccessToken(bookingId, token)
       ? await loadGuestBooking(bookingId)
       : null;
   if (!booking || booking.tenantSlug !== tenant) {
@@ -95,8 +85,7 @@ async function BookingDetails({
         </h1>
         {justBooked && (
           <p className="mt-2 text-zinc-600">
-            A confirmation is on its way to{" "}
-            <strong>{booking.clientEmail}</strong>.
+            A confirmation is on its way to <strong>{booking.clientEmail}</strong>.
           </p>
         )}
         {waiting && (
@@ -118,15 +107,9 @@ async function BookingDetails({
             <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">
               Booking #{booking.number}
             </p>
-            <p className="mt-1 font-semibold text-zinc-900">
-              {booking.serviceName}
-            </p>
+            <p className="mt-1 font-semibold text-zinc-900">{booking.serviceName}</p>
           </div>
-          <Badge
-            tone={
-              statusTone[booking.status as keyof typeof statusTone] ?? "neutral"
-            }
-          >
+          <Badge tone={statusTone[booking.status as keyof typeof statusTone] ?? "neutral"}>
             {statusText[booking.status] ?? booking.status}
           </Badge>
         </div>
@@ -138,15 +121,11 @@ async function BookingDetails({
               <br />
               Arrival {formatWindow(booking.localStart, booking.localEnd)}
             </dd>
-            <dd className="text-zinc-500">
-              About {formatDuration(booking.durationMinutes)}
-            </dd>
+            <dd className="text-zinc-500">About {formatDuration(booking.durationMinutes)}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Where</dt>
-            <dd className="mt-0.5 font-medium text-zinc-900">
-              {booking.address}
-            </dd>
+            <dd className="mt-0.5 font-medium text-zinc-900">{booking.address}</dd>
           </div>
           <div>
             <dt className="text-zinc-500">Price</dt>
@@ -177,27 +156,16 @@ async function BookingDetails({
         <Card className="p-5 text-sm text-zinc-600">
           <p className="font-medium text-zinc-900">What happens next</p>
           <ul className="mt-2 list-disc space-y-1 pl-5">
-            <li>
-              We e-mail you 3 days before the visit to check how the crew gets
-              in.
-            </li>
+            <li>We e-mail you 3 days before the visit to check how the crew gets in.</li>
             <li>A reminder comes the day before.</li>
             <li>
               {plan
                 ? "Your card is charged after each visit."
                 : `The remaining ${money(booking.totalCents - booking.paidCents)} is charged after the visit.`}
             </li>
-            <li>
-              Reschedule or cancel for free up to 48 hours before your arrival
-              window.
-            </li>
+            <li>Reschedule or cancel for free up to 48 hours before your arrival window.</li>
           </ul>
-          <ButtonLink
-            href="/portal"
-            variant="secondary"
-            size="sm"
-            className="mt-4"
-          >
+          <ButtonLink href="/portal" variant="secondary" size="sm" className="mt-4">
             Manage your booking
           </ButtonLink>
         </Card>

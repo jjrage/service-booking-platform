@@ -9,11 +9,7 @@
  * admin console. The domain layer validates and interprets them.
  */
 
-import type {
-  CancellationRules,
-  PricingRules,
-  ScheduleRules,
-} from "@/domain/rules";
+import type { CancellationRules, PricingRules, ScheduleRules } from "@/domain/rules";
 
 export const wrenfieldTenant = {
   slug: "wrenfield",
@@ -100,36 +96,31 @@ export const wrenfieldServices = [
   {
     code: "standard",
     name: "Standard Clean",
-    description:
-      "Kitchen, bathrooms, dusting, floors and surfaces throughout the home.",
+    description: "Kitchen, bathrooms, dusting, floors and surfaces throughout the home.",
     bookingMode: "instant",
   },
   {
     code: "deep",
     name: "Deep Clean",
-    description:
-      "Everything in a standard clean plus baseboards, doors, vents and built-up grime.",
+    description: "Everything in a standard clean plus baseboards, doors, vents and built-up grime.",
     bookingMode: "instant",
   },
   {
     code: "move_in_out",
     name: "Move-In / Move-Out Clean",
-    description:
-      "A deep clean of an empty home, inside cabinets and appliances included.",
+    description: "A deep clean of an empty home, inside cabinets and appliances included.",
     bookingMode: "instant",
   },
   {
     code: "post_renovation",
     name: "Post-Renovation Clean",
-    description:
-      "Dust and debris removal after remodeling. Quoted after we see photos.",
+    description: "Dust and debris removal after remodeling. Quoted after we see photos.",
     bookingMode: "quote_request",
   },
   {
     code: "office",
     name: "Small Office Clean",
-    description:
-      "Offices up to 3,000 sq ft. Quoted after a short walkthrough or photos.",
+    description: "Offices up to 3,000 sq ft. Quoted after a short walkthrough or photos.",
     bookingMode: "quote_request",
   },
 ] as const;
@@ -186,48 +177,19 @@ export const wrenfieldPricingRules: PricingRules = {
       code: "A",
       name: "Central Raleigh",
       surcharge_cents: 0,
-      zips: [
-        "27601",
-        "27603",
-        "27604",
-        "27605",
-        "27607",
-        "27608",
-        "27609",
-        "27610",
-        "27612",
-      ],
+      zips: ["27601", "27603", "27604", "27605", "27607", "27608", "27609", "27610", "27612"],
     },
     {
       code: "B",
       name: "North Raleigh & Cary",
       surcharge_cents: 1500,
-      zips: [
-        "27511",
-        "27513",
-        "27518",
-        "27606",
-        "27613",
-        "27614",
-        "27615",
-        "27616",
-        "27617",
-      ],
+      zips: ["27511", "27513", "27518", "27606", "27613", "27614", "27615", "27616", "27617"],
     },
     {
       code: "C",
       name: "Outer Wake County",
       surcharge_cents: 3000,
-      zips: [
-        "27519",
-        "27523",
-        "27526",
-        "27529",
-        "27539",
-        "27560",
-        "27587",
-        "27597",
-      ],
+      zips: ["27519", "27523", "27526", "27529", "27539", "27560", "27587", "27597"],
     },
   ],
   deposit: { percent: 25, minimum_cents: 5000 },
@@ -301,8 +263,7 @@ export const wrenfieldClients: DemoClient[] = [
       halfBaths: 1,
       sqft: 2100,
       hasPets: true,
-      petNotes:
-        "Friendly golden retriever, Biscuit. Please keep the back gate closed.",
+      petNotes: "Friendly golden retriever, Biscuit. Please keep the back gate closed.",
       accessNotes: "Lockbox on the side door, code 4821.",
     },
   },
@@ -589,12 +550,8 @@ export const wrenfieldBadCardClients = ["Marcus Bellamy"];
 
 /** Notes the office keeps about clients (staff only; clients never see them). */
 export const wrenfieldClientNotes: Record<string, string[]> = {
-  "Emily Thornton": [
-    "Prefers Ana's crew. Asked us to use the unscented products in the nursery.",
-  ],
-  "David Okafor": [
-    "Works from home on Wednesdays; quiet vacuuming near the office.",
-  ],
+  "Emily Thornton": ["Prefers Ana's crew. Asked us to use the unscented products in the nursery."],
+  "David Okafor": ["Works from home on Wednesdays; quiet vacuuming near the office."],
   "Sarah Whitaker": [
     "Large home: book deep cleans in the 8:00 window only.",
     "Parrot in the den is loud but harmless.",

@@ -60,8 +60,7 @@ export async function loadWindowsAction(input: {
 }): Promise<WindowsResponse> {
   const catalog = await catalogFor(input.slug);
   const request = quoteInputSchema.safeParse(input.quote);
-  if (!request.success)
-    return { ok: false, message: "Check the home details." };
+  if (!request.success) return { ok: false, message: "Check the home details." };
   const priced = quote(catalog.pricing.rules, request.data);
   if (!priced.ok) return { ok: false, message: priced.error.message };
 
@@ -71,10 +70,7 @@ export async function loadWindowsAction(input: {
     new Date().toISOString(),
   );
   const requested = dateSchema.safeParse(input.from);
-  const from =
-    requested.success && requested.data > bounds.first
-      ? requested.data
-      : bounds.first;
+  const from = requested.success && requested.data > bounds.first ? requested.data : bounds.first;
   const to = [addDays(from, 13), bounds.last].sort()[0]!;
   const durationMinutes = priced.quote.firstVisit.durationMinutes;
 
@@ -88,8 +84,7 @@ export async function loadWindowsAction(input: {
   };
 }
 
-export type HoldResponse =
-  { ok: true; hold: Hold } | (Failure & { alternatives: WindowChoice[] });
+export type HoldResponse = { ok: true; hold: Hold } | (Failure & { alternatives: WindowChoice[] });
 
 export async function holdWindowAction(input: {
   slug: string;
@@ -131,29 +126,20 @@ export async function holdWindowAction(input: {
     };
   }
 
-  jar.set(
-    holdCookieName(catalog.tenant.slug),
-    sealJson("hold", { token: result.hold.token }),
-    {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: catalog.schedule.rules.hold_minutes * 60,
-    },
-  );
+  jar.set(holdCookieName(catalog.tenant.slug), sealJson("hold", { token: result.hold.token }), {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: catalog.schedule.rules.hold_minutes * 60,
+  });
   return { ok: true, hold: result.hold };
 }
 
-export async function releaseHoldAction(input: {
-  slug: string;
-}): Promise<void> {
+export async function releaseHoldAction(input: { slug: string }): Promise<void> {
   const slug = slugSchema.parse(input.slug);
   const jar = await cookies();
-  const hold = openJson<{ token: string }>(
-    "hold",
-    jar.get(holdCookieName(slug))?.value,
-  );
+  const hold = openJson<{ token: string }>("hold", jar.get(holdCookieName(slug))?.value);
   if (hold) await releaseHold(hold.token);
   jar.delete(holdCookieName(slug));
 }

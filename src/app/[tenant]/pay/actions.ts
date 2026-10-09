@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { afterPaymentEvent } from "@/server/payments/after-event";
 import { completeSimulatedCheckout } from "@/server/payments/service";
 import { simulatedTestCards } from "@/server/payments/simulated";
 import { bookingAccessToken, verifyBookingAccessToken } from "@/server/signing";
@@ -10,9 +11,7 @@ const inputSchema = z.object({
   slug: z.string().regex(/^[a-z0-9-]{2,40}$/),
   bookingId: z.uuid(),
   token: z.string().min(1),
-  card: z.enum(
-    Object.keys(simulatedTestCards) as [keyof typeof simulatedTestCards],
-  ),
+  card: z.enum(Object.keys(simulatedTestCards) as [keyof typeof simulatedTestCards]),
   authenticated: z.boolean().optional(),
 });
 
@@ -32,10 +31,7 @@ export async function simulatedPayAction(
   input: z.input<typeof inputSchema>,
 ): Promise<SimulatedPayResponse> {
   const parsed = inputSchema.safeParse(input);
-  if (
-    !parsed.success ||
-    !verifyBookingAccessToken(parsed.data.bookingId, parsed.data.token)
-  ) {
+  if (!parsed.success || !verifyBookingAccessToken(parsed.data.bookingId, parsed.data.token)) {
     return {
       ok: false,
       status: "error",
@@ -44,11 +40,8 @@ export async function simulatedPayAction(
   }
   const { slug, bookingId, card, authenticated } = parsed.data;
 
-  const result = await completeSimulatedCheckout(
-    bookingId,
-    card,
-    authenticated,
-  );
+  const result = await completeSimulatedCheckout(bookingId, card, authenticated);
+  await afterPaymentEvent(result);
   if (result.paymentStatus === "succeeded") {
     return {
       ok: true,
@@ -65,8 +58,6 @@ export async function simulatedPayAction(
   return {
     ok: false,
     status: "failed",
-    message:
-      result.failureMessage ??
-      "The payment did not go through. Try another card.",
+    message: result.failureMessage ?? "The payment did not go through. Try another card.",
   };
 }

@@ -1,11 +1,6 @@
 "use client";
 
-import {
-  Elements,
-  PaymentElement,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js";
+import { Elements, PaymentElement, useElements, useStripe } from "@stripe/react-stripe-js";
 import { loadStripe, type Stripe } from "@stripe/stripe-js";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
@@ -48,10 +43,7 @@ function DueBy({ until }: { until: string }) {
   );
   useEffect(() => {
     const timer = setInterval(
-      () =>
-        setMinutes(
-          Math.max(0, Math.ceil((Date.parse(until) - Date.now()) / 60000)),
-        ),
+      () => setMinutes(Math.max(0, Math.ceil((Date.parse(until) - Date.now()) / 60000))),
       15000,
     );
     return () => clearInterval(timer);
@@ -73,10 +65,7 @@ const stripePromises = new Map<string, Promise<Stripe | null>>();
 function StripeForm(props: Props & { publishableKey: string }) {
   const stripePromise = useMemo(() => {
     if (!stripePromises.has(props.publishableKey)) {
-      stripePromises.set(
-        props.publishableKey,
-        loadStripe(props.publishableKey),
-      );
+      stripePromises.set(props.publishableKey, loadStripe(props.publishableKey));
     }
     return stripePromises.get(props.publishableKey)!;
   }, [props.publishableKey]);
@@ -109,10 +98,7 @@ function StripeFields({ session, amountLabel, returnUrl }: Props) {
     if (!stripe || !elements) return;
     setPending(true);
     setError(null);
-    const absoluteReturn = new URL(
-      returnUrl,
-      window.location.origin,
-    ).toString();
+    const absoluteReturn = new URL(returnUrl, window.location.origin).toString();
     const result =
       session.mode === "setup"
         ? await stripe.confirmSetup({
@@ -140,18 +126,12 @@ function StripeFields({ session, amountLabel, returnUrl }: Props) {
         <form onSubmit={submit} className="space-y-4">
           <PaymentElement />
           {error && <Alert tone="danger">{error}</Alert>}
-          <Button
-            type="submit"
-            size="lg"
-            className="w-full"
-            disabled={!stripe || pending}
-          >
+          <Button type="submit" size="lg" className="w-full" disabled={!stripe || pending}>
             {pending && <Spinner />}
             {amountLabel}
           </Button>
           <p className="text-center text-xs text-zinc-500">
-            Stripe test mode. Use 4242 4242 4242 4242, any future date and any
-            CVC.
+            Stripe test mode. Use 4242 4242 4242 4242, any future date and any CVC.
           </p>
         </form>
       </CardBody>
@@ -222,9 +202,7 @@ function SimulatedForm({ slug, bookingId, token, amountLabel }: Props) {
   function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!card) {
-      setError(
-        "Test mode: use one of the test card numbers below. Real cards are never accepted.",
-      );
+      setError("Test mode: use one of the test card numbers below. Real cards are never accepted.");
       return;
     }
     pay(card.name);
@@ -257,18 +235,10 @@ function SimulatedForm({ slug, bookingId, token, amountLabel }: Props) {
           </Field>
           <div className="grid grid-cols-2 gap-4">
             <Field label="Expiry" htmlFor="card-expiry">
-              <Input
-                id="card-expiry"
-                value={expiry}
-                onChange={(e) => setExpiry(e.target.value)}
-              />
+              <Input id="card-expiry" value={expiry} onChange={(e) => setExpiry(e.target.value)} />
             </Field>
             <Field label="CVC" htmlFor="card-cvc">
-              <Input
-                id="card-cvc"
-                value={cvc}
-                onChange={(e) => setCvc(e.target.value)}
-              />
+              <Input id="card-cvc" value={cvc} onChange={(e) => setCvc(e.target.value)} />
             </Field>
           </div>
           {error && <Alert tone="danger">{error}</Alert>}
@@ -325,18 +295,16 @@ function SimulatedForm({ slug, bookingId, token, amountLabel }: Props) {
                   className="flex w-full justify-between gap-3 rounded px-1 py-0.5 text-left text-sm hover:bg-white"
                   onClick={() => setNumber(c.number)}
                 >
-                  <span className="tabular font-mono text-zinc-800">
-                    {c.number}
-                  </span>
+                  <span className="tabular font-mono text-zinc-800">{c.number}</span>
                   <span className="text-zinc-500">{c.behavior}</span>
                 </button>
               </li>
             ))}
           </ul>
           <p className="mt-3 text-xs text-zinc-500">
-            Payments run in a built-in simulator because no Stripe keys are
-            configured. It follows Stripe&apos;s test-mode behavior; with keys,
-            the Stripe Payment Element replaces this form.
+            Payments run in a built-in simulator because no Stripe keys are configured. It follows
+            Stripe&apos;s test-mode behavior; with keys, the Stripe Payment Element replaces this
+            form.
           </p>
         </div>
       </CardBody>

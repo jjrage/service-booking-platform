@@ -56,16 +56,10 @@ export function Alert({
   return (
     <div
       role={tone === "danger" ? "alert" : "status"}
-      className={cn(
-        "rounded-lg px-4 py-3 text-sm ring-1 ring-inset",
-        alertTones[tone],
-        className,
-      )}
+      className={cn("rounded-lg px-4 py-3 text-sm ring-1 ring-inset", alertTones[tone], className)}
     >
       {title && <p className="font-semibold">{title}</p>}
-      {children && (
-        <div className={cn(Boolean(title) && "mt-1")}>{children}</div>
-      )}
+      {children && <div className={cn(Boolean(title) && "mt-1")}>{children}</div>}
     </div>
   );
 }
@@ -84,7 +78,5 @@ export function Spinner({ className }: { className?: string }) {
 
 /** A placeholder block for streaming content. */
 export function Skeleton({ className }: { className?: string }) {
-  return (
-    <div className={cn("animate-pulse rounded-lg bg-zinc-200/70", className)} />
-  );
+  return <div className={cn("animate-pulse rounded-lg bg-zinc-200/70", className)} />;
 }

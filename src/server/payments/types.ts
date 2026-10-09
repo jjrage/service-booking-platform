@@ -74,10 +74,7 @@ export interface PaymentProvider {
   }): Promise<CheckoutSession>;
 
   /** The client secret of an existing checkout, to resume it after a page reload. */
-  resumeCheckout(
-    paymentRef: string,
-    mode: "payment" | "setup",
-  ): Promise<CheckoutSession>;
+  resumeCheckout(paymentRef: string, mode: "payment" | "setup"): Promise<CheckoutSession>;
 
   /**
    * Charges a saved card without the client present, in two steps so the payment can be recorded before the
@@ -94,11 +91,7 @@ export interface PaymentProvider {
   }): Promise<{ paymentRef: string }>;
   confirmOffSessionCharge(paymentRef: string): Promise<OffSessionResult>;
 
-  refund(input: {
-    paymentRef: string;
-    amountCents: number;
-    idempotencyKey: string;
-  }): Promise<{
+  refund(input: { paymentRef: string; amountCents: number; idempotencyKey: string }): Promise<{
     refundRef: string;
     status: "pending" | "succeeded" | "failed";
   }>;

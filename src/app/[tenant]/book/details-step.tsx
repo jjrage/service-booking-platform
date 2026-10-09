@@ -35,10 +35,7 @@ function useCountdown(until: string): number {
   );
   useEffect(() => {
     const timer = setInterval(
-      () =>
-        setLeft(
-          Math.max(0, Math.round((Date.parse(until) - Date.now()) / 1000)),
-        ),
+      () => setLeft(Math.max(0, Math.round((Date.parse(until) - Date.now()) / 1000))),
       1000,
     );
     return () => clearInterval(timer);
@@ -79,14 +76,12 @@ export function DetailsStep({
   const secondsLeft = useCountdown(hold.expiresAt);
   const expired = secondsLeft === 0;
 
-  const set = (patch: Partial<FormState>) =>
-    setForm((f) => ({ ...f, ...patch }));
+  const set = (patch: Partial<FormState>) => setForm((f) => ({ ...f, ...patch }));
   const field = (name: keyof FormState, path: string) => ({
     id: name,
     value: form[name] as string,
     "aria-invalid": Boolean(errors[path]),
-    onChange: (e: { target: { value: string } }) =>
-      set({ [name]: e.target.value }),
+    onChange: (e: { target: { value: string } }) => set({ [name]: e.target.value }),
   });
 
   function submit(event: React.FormEvent) {
@@ -123,20 +118,16 @@ export function DetailsStep({
       }
       setErrors(result.fieldErrors ?? {});
       setMessage(result.message);
-      if (result.code === "hold_expired" || result.code === "slot_taken")
-        onHoldLost();
+      if (result.code === "hold_expired" || result.code === "slot_taken") onHoldLost();
     });
   }
 
   return (
     <form className="space-y-6" onSubmit={submit} noValidate>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-          Your details
-        </h1>
+        <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">Your details</h1>
         <p className="mt-1 text-zinc-600">
-          Held for you: <strong>{formatDate(hold.date, "long")}</strong>,
-          arrival{" "}
+          Held for you: <strong>{formatDate(hold.date, "long")}</strong>, arrival{" "}
           <strong>{formatWindow(hold.localStart, hold.localEnd)}</strong>.
         </p>
       </div>
@@ -145,11 +136,7 @@ export function DetailsStep({
         {expired ? (
           <>
             Your hold expired.{" "}
-            <button
-              type="button"
-              className="font-semibold underline"
-              onClick={onHoldLost}
-            >
+            <button type="button" className="font-semibold underline" onClick={onHoldLost}>
               Pick a window again
             </button>
           </>
@@ -157,8 +144,7 @@ export function DetailsStep({
           <>
             We are holding this window for{" "}
             <span className="tabular font-semibold">
-              {Math.floor(secondsLeft / 60)}:
-              {String(secondsLeft % 60).padStart(2, "0")}
+              {Math.floor(secondsLeft / 60)}:{String(secondsLeft % 60).padStart(2, "0")}
             </span>
             .
           </>
@@ -168,10 +154,7 @@ export function DetailsStep({
       {message && <Alert tone="danger">{message}</Alert>}
 
       <Card>
-        <CardHeader
-          title="Contact"
-          description="We send the confirmation and reminders here."
-        />
+        <CardHeader title="Contact" description="We send the confirmation and reminders here." />
         <CardBody className="grid gap-4 sm:grid-cols-2">
           <Field
             label="Full name"
@@ -179,23 +162,12 @@ export function DetailsStep({
             error={errors["contact.fullName"]}
             className="sm:col-span-2"
           >
-            <Input
-              autoComplete="name"
-              {...field("fullName", "contact.fullName")}
-            />
+            <Input autoComplete="name" {...field("fullName", "contact.fullName")} />
           </Field>
           <Field label="E-mail" htmlFor="email" error={errors["contact.email"]}>
-            <Input
-              type="email"
-              autoComplete="email"
-              {...field("email", "contact.email")}
-            />
+            <Input type="email" autoComplete="email" {...field("email", "contact.email")} />
           </Field>
-          <Field
-            label="Mobile phone"
-            htmlFor="phone"
-            error={errors["contact.phone"]}
-          >
+          <Field label="Mobile phone" htmlFor="phone" error={errors["contact.phone"]}>
             <Input
               type="tel"
               autoComplete="tel"
@@ -215,16 +187,10 @@ export function DetailsStep({
             error={errors["address.line1"]}
             className="sm:col-span-4"
           >
-            <Input
-              autoComplete="address-line1"
-              {...field("line1", "address.line1")}
-            />
+            <Input autoComplete="address-line1" {...field("line1", "address.line1")} />
           </Field>
           <Field label="Apt, suite" htmlFor="line2" className="sm:col-span-2">
-            <Input
-              autoComplete="address-line2"
-              {...field("line2", "address.line2")}
-            />
+            <Input autoComplete="address-line2" {...field("line2", "address.line2")} />
           </Field>
           <Field
             label="City"
@@ -232,10 +198,7 @@ export function DetailsStep({
             error={errors["address.city"]}
             className="sm:col-span-3"
           >
-            <Input
-              autoComplete="address-level2"
-              {...field("city", "address.city")}
-            />
+            <Input autoComplete="address-level2" {...field("city", "address.city")} />
           </Field>
           <Field
             label="State"
@@ -249,12 +212,7 @@ export function DetailsStep({
               {...field("state", "address.state")}
             />
           </Field>
-          <Field
-            label="ZIP"
-            htmlFor="zipLocked"
-            hint="From your quote"
-            className="sm:col-span-2"
-          >
+          <Field label="ZIP" htmlFor="zipLocked" hint="From your quote" className="sm:col-span-2">
             <Input id="zipLocked" value={request.zip} disabled readOnly />
           </Field>
         </CardBody>

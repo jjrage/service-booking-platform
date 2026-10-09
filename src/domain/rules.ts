@@ -11,31 +11,16 @@ const cents = z.int().min(0);
 const minutes = z.int().min(0);
 const percent = z.int().min(0).max(100);
 const count = z.int().min(0);
-const localTime = z
-  .string()
-  .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "time as HH:MM (24-hour)");
+const localTime = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "time as HH:MM (24-hour)");
 const localDate = z.iso.date();
 const zip = z.string().regex(/^\d{5}$/, "5-digit ZIP");
 
 const priced = z.object({ cents, minutes });
 
-export const weekdays = [
-  "mon",
-  "tue",
-  "wed",
-  "thu",
-  "fri",
-  "sat",
-  "sun",
-] as const;
+export const weekdays = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
 export type Weekday = (typeof weekdays)[number];
 
-export const frequencies = [
-  "one_time",
-  "weekly",
-  "biweekly",
-  "monthly",
-] as const;
+export const frequencies = ["one_time", "weekly", "biweekly", "monthly"] as const;
 export type Frequency = (typeof frequencies)[number];
 
 export const pricingRulesSchema = z
@@ -131,10 +116,7 @@ export type PricingRules = z.infer<typeof pricingRulesSchema>;
 
 const openHours = z
   .tuple([localTime, localTime])
-  .refine(
-    ([open, close]) => open < close,
-    "opening time must be before closing time",
-  )
+  .refine(([open, close]) => open < close, "opening time must be before closing time")
   .nullable();
 
 export const scheduleRulesSchema = z
@@ -152,10 +134,7 @@ export const scheduleRulesSchema = z
       .array(
         z
           .tuple([localTime, localTime])
-          .refine(
-            ([start, end]) => start < end,
-            "window start must be before its end",
-          ),
+          .refine(([start, end]) => start < end, "window start must be before its end"),
       )
       .min(1),
     travel_buffer_minutes: z.int().min(0).max(240),

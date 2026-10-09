@@ -83,15 +83,13 @@ describe("double booking under concurrent load", () => {
     const busy = futureRange(4, 3.5);
     const results = await holdConcurrently(crewIds, busy);
 
-    const heldCrews = results
-      .flatMap((result) => result.data ?? [])
-      .map((row) => row.crew_id);
+    const heldCrews = results.flatMap((result) => result.data ?? []).map((row) => row.crew_id);
 
     expect(heldCrews).toHaveLength(3);
     expect(new Set(heldCrews)).toEqual(new Set(crewIds));
-    expect(
-      results.filter((result) => result.error?.code === "23P01"),
-    ).toHaveLength(PARALLEL_REQUESTS - 3);
+    expect(results.filter((result) => result.error?.code === "23P01")).toHaveLength(
+      PARALLEL_REQUESTS - 3,
+    );
     expect(await allocationsOverlapping(busy)).toHaveLength(3);
   });
 });

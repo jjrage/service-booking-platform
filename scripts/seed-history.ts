@@ -1,11 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 import type { Database } from "@/db/database.types";
-import {
-  generateHistory,
-  type HistoryInput,
-  type PlanSpec,
-} from "@/demo/history";
+import { generateHistory, type HistoryInput, type PlanSpec } from "@/demo/history";
 import { formatMoney } from "@/domain/money";
 
 type Admin = SupabaseClient<Database>;
@@ -18,9 +14,7 @@ async function insertAll<T extends Record<string, unknown>>(
   rows: T[],
 ): Promise<void> {
   for (let i = 0; i < rows.length; i += 500) {
-    const { error } = await admin
-      .from(table as "bookings")
-      .insert(rows.slice(i, i + 500) as never);
+    const { error } = await admin.from(table as "bookings").insert(rows.slice(i, i + 500) as never);
     if (error) throw new Error(`insert into ${table}: ${error.message}`);
   }
 }
@@ -242,9 +236,7 @@ export async function insertHistory(
       created_at: p.at,
     });
   }
-  events.sort((a, b) =>
-    String(a.created_at).localeCompare(String(b.created_at)),
-  );
+  events.sort((a, b) => String(a.created_at).localeCompare(String(b.created_at)));
   await insertAll(admin, "booking_events", events);
 
   // Saved cards: every client has one; a few have Stripe's "charges fail later" test card.

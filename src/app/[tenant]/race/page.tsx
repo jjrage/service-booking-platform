@@ -15,18 +15,16 @@ export default function RacePage({ params }: PageProps<"/[tenant]/race">) {
       </h1>
       <div className="mt-4 space-y-3 text-zinc-600">
         <p>
-          Press a button and the server fires that many booking attempts at the
-          same arrival window of the same crew, all at once. Each attempt is a
-          separate request and database transaction, like real checkouts from
-          different phones.
+          Press a button and the server fires that many booking attempts at the same arrival window
+          of the same crew, all at once. Each attempt is a separate request and database
+          transaction, like real checkouts from different phones.
         </p>
         <p>
-          The application never checks &quot;is it free?&quot; before writing.
-          Postgres does the check itself, at the moment of writing: an{" "}
-          <code className="text-sm">EXCLUDE</code> constraint on the crew&apos;s
-          time ranges refuses any overlap with error{" "}
-          <code className="text-sm">23P01</code>. Exactly one attempt wins; the
-          others are offered the next free windows.
+          The application never checks &quot;is it free?&quot; before writing. Postgres does the
+          check itself, at the moment of writing: an <code className="text-sm">EXCLUDE</code>{" "}
+          constraint on the crew&apos;s time ranges refuses any overlap with error{" "}
+          <code className="text-sm">23P01</code>. Exactly one attempt wins; the others are offered
+          the next free windows.
         </p>
       </div>
       <Suspense>

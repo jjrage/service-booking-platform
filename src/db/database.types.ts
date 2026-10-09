@@ -1,10 +1,4 @@
-export type Json =
-  | string
-  | number
-  | boolean
-  | null
-  | { [key: string]: Json | undefined }
-  | Json[];
+export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type Database = {
   graphql_public: {
@@ -1116,6 +1110,15 @@ export type Database = {
         };
         Returns: undefined;
       };
+      cmd_cancel_plan: {
+        Args: {
+          p_actor: string;
+          p_actor_kind: Database["public"]["Enums"]["actor_kind"];
+          p_free_after: string;
+          p_plan_id: string;
+        };
+        Returns: number;
+      };
       cmd_create_booking: {
         Args: {
           p_actor: string;
@@ -1170,6 +1173,24 @@ export type Database = {
           hold_token: string;
         }[];
       };
+      cmd_link_client_account: {
+        Args: { p_email: string; p_user_id: string };
+        Returns: number;
+      };
+      cmd_mark_plan_materialized: {
+        Args: { p_plan_id: string; p_through: string };
+        Returns: undefined;
+      };
+      cmd_pause_plan: {
+        Args: {
+          p_actor: string;
+          p_actor_kind: Database["public"]["Enums"]["actor_kind"];
+          p_free_after: string;
+          p_plan_id: string;
+          p_until: string;
+        };
+        Returns: number;
+      };
       cmd_publish_rules: {
         Args: {
           p_actor: string;
@@ -1183,6 +1204,14 @@ export type Database = {
           rule_version_id: string;
           version: number;
         }[];
+      };
+      cmd_raise_plan_conflict: {
+        Args: {
+          p_message: string;
+          p_occurrence_date: string;
+          p_plan_id: string;
+        };
+        Returns: undefined;
       };
       cmd_reassign_booking: {
         Args: { p_actor: string; p_booking_id: string; p_crew_id: string };
@@ -1220,6 +1249,14 @@ export type Database = {
           crew_id: string;
         }[];
       };
+      cmd_resume_plan: {
+        Args: {
+          p_actor: string;
+          p_actor_kind: Database["public"]["Enums"]["actor_kind"];
+          p_plan_id: string;
+        };
+        Returns: undefined;
+      };
       cmd_save_billing: {
         Args: {
           p_card?: Json;
@@ -1240,6 +1277,28 @@ export type Database = {
           p_purpose: Database["public"]["Enums"]["payment_purpose"];
         };
         Returns: string;
+      };
+      cmd_update_client_contact: {
+        Args: {
+          p_actor: string;
+          p_actor_kind: Database["public"]["Enums"]["actor_kind"];
+          p_client_id: string;
+          p_full_name: string;
+          p_phone: string;
+        };
+        Returns: undefined;
+      };
+      cmd_update_property_notes: {
+        Args: {
+          p_access_notes: string;
+          p_actor: string;
+          p_actor_kind: Database["public"]["Enums"]["actor_kind"];
+          p_has_pets: boolean;
+          p_parking_notes: string;
+          p_pet_notes: string;
+          p_property_id: string;
+        };
+        Returns: undefined;
       };
       public_busy: {
         Args: { p_from: string; p_tenant_id: string; p_to: string };
@@ -1269,28 +1328,13 @@ export type Database = {
       booking_mode: "instant" | "quote_request" | "class";
       booking_source: "web" | "portal" | "admin" | "ai" | "plan";
       booking_status:
-        | "pending_payment"
-        | "confirmed"
-        | "completed"
-        | "no_access"
-        | "cancelled"
-        | "expired";
+        "pending_payment" | "confirmed" | "completed" | "no_access" | "cancelled" | "expired";
       client_source: "web" | "portal" | "admin" | "ai" | "import";
       member_role: "owner" | "dispatcher" | "cleaner";
       payment_provider: "stripe" | "simulated";
-      payment_purpose:
-        | "deposit"
-        | "card_setup"
-        | "balance"
-        | "cancellation_fee"
-        | "no_access_fee";
+      payment_purpose: "deposit" | "card_setup" | "balance" | "cancellation_fee" | "no_access_fee";
       payment_status:
-        | "requires_payment"
-        | "requires_action"
-        | "processing"
-        | "succeeded"
-        | "failed"
-        | "canceled";
+        "requires_payment" | "requires_action" | "processing" | "succeeded" | "failed" | "canceled";
       plan_frequency: "weekly" | "biweekly" | "monthly";
       plan_status: "active" | "paused" | "cancelled";
       refund_status: "pending" | "succeeded" | "failed";
@@ -1304,10 +1348,7 @@ export type Database = {
 
 type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">;
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<
-  keyof Database,
-  "public"
->];
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">];
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
@@ -1328,10 +1369,8 @@ export type Tables<
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] & DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R;
       }
       ? R
@@ -1404,8 +1443,7 @@ export type Enums<
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+    keyof DefaultSchema["CompositeTypes"] | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals;
   }
@@ -1455,13 +1493,7 @@ export const Constants = {
       client_source: ["web", "portal", "admin", "ai", "import"],
       member_role: ["owner", "dispatcher", "cleaner"],
       payment_provider: ["stripe", "simulated"],
-      payment_purpose: [
-        "deposit",
-        "card_setup",
-        "balance",
-        "cancellation_fee",
-        "no_access_fee",
-      ],
+      payment_purpose: ["deposit", "card_setup", "balance", "cancellation_fee", "no_access_fee"],
       payment_status: [
         "requires_payment",
         "requires_action",

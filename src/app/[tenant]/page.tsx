@@ -16,11 +16,7 @@ export default function TenantHome({ params }: PageProps<"/[tenant]">) {
   );
 }
 
-async function TenantHomeContent({
-  params,
-}: {
-  params: Promise<{ tenant: string }>;
-}) {
+async function TenantHomeContent({ params }: { params: Promise<{ tenant: string }> }) {
   const catalog = await requireCatalog(params);
   const { tenant, pricing, schedule } = catalog;
   const smallestHome = {
@@ -51,9 +47,8 @@ async function TenantHomeContent({
               A spotless home, booked in two minutes.
             </h1>
             <p className="mt-4 max-w-xl text-lg text-zinc-600">
-              See your exact price before you book, pick an arrival window, and
-              manage every visit online. Insured two-person crews, the same crew
-              for regular cleanings.
+              See your exact price before you book, pick an arrival window, and manage every visit
+              online. Insured two-person crews, the same crew for regular cleanings.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <ButtonLink href={`/${tenant.slug}/book`} size="lg">
@@ -83,39 +78,28 @@ async function TenantHomeContent({
                   ["monthly", "Every 4 weeks"],
                 ] as const
               ).map(([key, label]) => (
-                <li
-                  key={key}
-                  className="flex items-center justify-between py-3"
-                >
+                <li key={key} className="flex items-center justify-between py-3">
                   <span className="font-medium text-zinc-800">{label}</span>
                   <Badge tone="success">{discounts[key]}% off</Badge>
                 </li>
               ))}
             </ul>
             <p className="mt-4 text-sm text-zinc-500">
-              From the second visit. Skip or pause any time in the client
-              portal.
+              From the second visit. Skip or pause any time in the client portal.
             </p>
           </Card>
         </div>
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
-        <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">
-          Services
-        </h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">Services</h2>
         <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {catalog.services.map((service) => {
-            const price =
-              service.bookingMode === "instant"
-                ? fromPrice(service.code)
-                : null;
+            const price = service.bookingMode === "instant" ? fromPrice(service.code) : null;
             return (
               <Card key={service.id} className="flex flex-col p-5">
                 <div className="flex items-start justify-between gap-3">
-                  <h3 className="font-semibold text-zinc-900">
-                    {service.name}
-                  </h3>
+                  <h3 className="font-semibold text-zinc-900">{service.name}</h3>
                   {price !== null ? (
                     <span className="tabular whitespace-nowrap text-sm font-medium text-zinc-700">
                       from {formatMoney(price, tenant.currency)}
@@ -124,9 +108,7 @@ async function TenantHomeContent({
                     <Badge>Quoted</Badge>
                   )}
                 </div>
-                <p className="mt-2 flex-1 text-sm text-zinc-600">
-                  {service.description}
-                </p>
+                <p className="mt-2 flex-1 text-sm text-zinc-600">{service.description}</p>
                 {service.bookingMode === "instant" ? (
                   <ButtonLink
                     href={`/${tenant.slug}/book?service=${service.code}`}
@@ -138,8 +120,7 @@ async function TenantHomeContent({
                   </ButtonLink>
                 ) : (
                   <p className="mt-4 text-sm text-zinc-500">
-                    Call {tenant.phone} or e-mail {tenant.contactEmail} with a
-                    few photos.
+                    Call {tenant.phone} or e-mail {tenant.contactEmail} with a few photos.
                   </p>
                 )}
               </Card>
@@ -173,17 +154,13 @@ async function TenantHomeContent({
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-14 sm:px-6">
-        <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">
-          Where we clean
-        </h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-zinc-900">Where we clean</h2>
         <div className="mt-6 grid gap-4 md:grid-cols-3">
           {pricing.rules.zones.map((zone) => (
             <Card key={zone.code} className="p-5">
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-zinc-900">{zone.name}</h3>
-                <Badge
-                  tone={zone.surcharge_cents === 0 ? "success" : "neutral"}
-                >
+                <Badge tone={zone.surcharge_cents === 0 ? "success" : "neutral"}>
                   {zone.surcharge_cents === 0
                     ? "No travel fee"
                     : `+${formatMoney(zone.surcharge_cents, tenant.currency)} travel`}

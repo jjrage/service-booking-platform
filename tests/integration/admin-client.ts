@@ -1,24 +1,12 @@
 import { createClient } from "@supabase/supabase-js";
 
-import {
-  parseEnv,
-  publicEnvSchema,
-  serverEnvSchema,
-} from "@/config/env-schema";
+import { parseEnv, publicEnvSchema, serverEnvSchema } from "@/config/env-schema";
 import type { Database } from "@/db/database.types";
 
 /** Service-role client for integration tests: it plays the app server calling the cmd_* functions. */
 export function createAdminClient() {
-  const { NEXT_PUBLIC_SUPABASE_URL } = parseEnv(
-    publicEnvSchema,
-    process.env,
-    "public",
-  );
-  const { SUPABASE_SECRET_KEY } = parseEnv(
-    serverEnvSchema,
-    process.env,
-    "server",
-  );
+  const { NEXT_PUBLIC_SUPABASE_URL } = parseEnv(publicEnvSchema, process.env, "public");
+  const { SUPABASE_SECRET_KEY } = parseEnv(serverEnvSchema, process.env, "server");
 
   return createClient<Database>(NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },

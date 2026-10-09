@@ -38,9 +38,7 @@ const steps: { key: Step; label: string }[] = [
   { key: "details", label: "Your details" },
 ];
 
-export function BookingWizard(
-  props: WizardContext & { initialService: string },
-) {
+export function BookingWizard(props: WizardContext & { initialService: string }) {
   const { initialService, ...context } = props;
   const included = context.pricing.included;
   const [step, setStep] = useState<Step>("home");
@@ -63,8 +61,7 @@ export function BookingWizard(
 
   // The same quote() the server uses; the server prices again when the booking is placed.
   const priced: QuoteResult | null = useMemo(
-    () =>
-      /^\d{5}$/.test(request.zip) ? quote(context.pricing, request) : null,
+    () => (/^\d{5}$/.test(request.zip) ? quote(context.pricing, request) : null),
     [context.pricing, request],
   );
 
@@ -89,9 +86,7 @@ export function BookingWizard(
               <span
                 className={cn(
                   "hidden sm:inline",
-                  index === current
-                    ? "font-medium text-zinc-900"
-                    : "text-zinc-500",
+                  index === current ? "font-medium text-zinc-900" : "text-zinc-500",
                 )}
               >
                 {s.label}

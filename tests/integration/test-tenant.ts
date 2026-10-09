@@ -67,9 +67,7 @@ export async function createTestTenant(options: { crews: number }) {
     admin,
     slug,
     tenantId: tenant.id,
-    crewIds: crews.data
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .map((c) => c.id),
+    crewIds: crews.data.sort((a, b) => a.name.localeCompare(b.name)).map((c) => c.id),
     async cleanup() {
       await admin.from("tenants").delete().eq("id", tenant.id);
     },

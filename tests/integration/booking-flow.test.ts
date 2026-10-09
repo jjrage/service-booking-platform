@@ -102,14 +102,9 @@ describe("guest checkout with the payment simulator", () => {
     const session = await startBookingCheckout(placed.bookingId);
     expect(session).toMatchObject({ provider: "simulated", mode: "payment" });
     // A reload resumes the same checkout instead of starting a second payment.
-    expect((await startBookingCheckout(placed.bookingId)).paymentRef).toBe(
-      session.paymentRef,
-    );
+    expect((await startBookingCheckout(placed.bookingId)).paymentRef).toBe(session.paymentRef);
 
-    const declined = await completeSimulatedCheckout(
-      placed.bookingId,
-      "declined",
-    );
+    const declined = await completeSimulatedCheckout(placed.bookingId, "declined");
     expect(declined).toMatchObject({
       paymentStatus: "failed",
       bookingStatus: "pending_payment",
@@ -136,20 +131,13 @@ describe("guest checkout with the payment simulator", () => {
     const placed = await bookAndHold(2);
     await startBookingCheckout(placed.bookingId);
 
-    const challenge = await completeSimulatedCheckout(
-      placed.bookingId,
-      "authenticate",
-    );
+    const challenge = await completeSimulatedCheckout(placed.bookingId, "authenticate");
     expect(challenge).toMatchObject({
       paymentStatus: "requires_action",
       bookingStatus: "pending_payment",
     });
 
-    const done = await completeSimulatedCheckout(
-      placed.bookingId,
-      "authenticate",
-      true,
-    );
+    const done = await completeSimulatedCheckout(placed.bookingId, "authenticate", true);
     expect(done).toMatchObject({
       paymentStatus: "succeeded",
       bookingStatus: "confirmed",
@@ -224,10 +212,7 @@ describe("guest checkout with the payment simulator", () => {
     const session = await startBookingCheckout(placed.bookingId);
     expect(session.mode).toBe("setup");
 
-    const saved = await completeSimulatedCheckout(
-      placed.bookingId,
-      "fails_later",
-    );
+    const saved = await completeSimulatedCheckout(placed.bookingId, "fails_later");
     expect(saved).toMatchObject({
       paymentStatus: "succeeded",
       bookingStatus: "confirmed",
@@ -286,10 +271,7 @@ describe("holding windows", () => {
       localStart: slot!.localStart,
       durationMinutes: 225,
     };
-    const results = await Promise.all([
-      holdWindow(catalog, request),
-      holdWindow(catalog, request),
-    ]);
+    const results = await Promise.all([holdWindow(catalog, request), holdWindow(catalog, request)]);
 
     const winners = results.filter((r) => r.ok);
     const losers = results.filter((r) => !r.ok);

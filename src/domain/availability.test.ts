@@ -37,9 +37,7 @@ describe("bookableDates()", () => {
       last: "2026-12-08",
     });
     // 16:00 local
-    expect(bookableDates(rules, timeZone, "2026-10-09T20:00:00Z").first).toBe(
-      "2026-10-11",
-    );
+    expect(bookableDates(rules, timeZone, "2026-10-09T20:00:00Z").first).toBe("2026-10-11");
   });
 });
 
@@ -48,13 +46,7 @@ describe("availableWindows()", () => {
     const [monday] = availableWindows(query());
 
     expect(monday?.status).toBe("open");
-    expect(
-      monday?.windows.map((w) => [
-        w.localStart,
-        w.status,
-        w.freeCrewIds.length,
-      ]),
-    ).toEqual([
+    expect(monday?.windows.map((w) => [w.localStart, w.status, w.freeCrewIds.length])).toEqual([
       ["08:00", "available", 3],
       ["11:00", "available", 3],
       ["14:00", "available", 3],
@@ -66,10 +58,7 @@ describe("availableWindows()", () => {
     const eight = monday!.windows[0]!;
 
     // 8:00 EDT = 12:00 UTC; latest finish 9:00 + 2 h, plus 30 min travel = 11:30 EDT
-    expect([eight.start, eight.end]).toEqual([
-      "2026-10-12T12:00:00Z",
-      "2026-10-12T13:00:00Z",
-    ]);
+    expect([eight.start, eight.end]).toEqual(["2026-10-12T12:00:00Z", "2026-10-12T13:00:00Z"]);
     expect([eight.busyStart, eight.busyEnd]).toEqual([
       "2026-10-12T12:00:00Z",
       "2026-10-12T15:30:00Z",
@@ -80,31 +69,21 @@ describe("availableWindows()", () => {
     const [monday] = availableWindows(query({ durationMinutes: 240 }));
 
     // 14:00–15:00 + 4 h ends at 19:00, after the 18:00 close
-    expect(monday?.windows.map((w) => w.status)).toEqual([
-      "available",
-      "available",
-      "too_long",
-    ]);
+    expect(monday?.windows.map((w) => w.status)).toEqual(["available", "available", "too_long"]);
   });
 
   it("closes Sundays, holidays and days outside the booking horizon", () => {
-    const days = availableWindows(
-      query({ from: "2026-10-09", to: "2026-10-11" }),
-    );
+    const days = availableWindows(query({ from: "2026-10-09", to: "2026-10-11" }));
     expect(days.map((d) => [d.date, d.status])).toEqual([
       ["2026-10-09", "too_soon"],
       ["2026-10-10", "open"],
       ["2026-10-11", "closed"],
     ]);
 
-    const [thanksgiving] = availableWindows(
-      query({ from: "2026-11-26", to: "2026-11-26" }),
-    );
+    const [thanksgiving] = availableWindows(query({ from: "2026-11-26", to: "2026-11-26" }));
     expect(thanksgiving?.status).toBe("holiday");
 
-    const [tooFar] = availableWindows(
-      query({ from: "2026-12-09", to: "2026-12-09" }),
-    );
+    const [tooFar] = availableWindows(query({ from: "2026-12-09", to: "2026-12-09" }));
     expect(tooFar?.status).toBe("beyond_horizon");
 
     const [staffBooking] = availableWindows(
@@ -160,23 +139,13 @@ describe("availableWindows()", () => {
     const [monday] = availableWindows(query({ busy }));
     expect(monday?.windows[2]?.freeCrewIds).toEqual(["green", "amber", "blue"]);
 
-    const [withPreference] = availableWindows(
-      query({ busy, preferredCrewId: "blue" }),
-    );
-    expect(withPreference?.windows[2]?.freeCrewIds).toEqual([
-      "blue",
-      "green",
-      "amber",
-    ]);
+    const [withPreference] = availableWindows(query({ busy, preferredCrewId: "blue" }));
+    expect(withPreference?.windows[2]?.freeCrewIds).toEqual(["blue", "green", "amber"]);
   });
 
   it("converts local windows to UTC on each date, across the end of daylight saving time", () => {
-    const days = availableWindows(
-      query({ from: "2026-10-31", to: "2026-11-02" }),
-    );
-    const starts = days
-      .filter((d) => d.status === "open")
-      .map((d) => d.windows[0]?.start);
+    const days = availableWindows(query({ from: "2026-10-31", to: "2026-11-02" }));
+    const starts = days.filter((d) => d.status === "open").map((d) => d.windows[0]?.start);
 
     // Saturday before the change is EDT (UTC−4); Monday after it is EST (UTC−5). Both are 8:00 locally.
     expect(starts).toEqual(["2026-10-31T12:00:00Z", "2026-11-02T13:00:00Z"]);
@@ -186,12 +155,8 @@ describe("availableWindows()", () => {
     const { window } = findWindow(query(), "2026-10-12", "11:00");
     expect(window?.start).toBe("2026-10-12T15:00:00Z");
 
-    const days = availableWindows(
-      query({ from: "2026-10-10", to: "2026-10-12" }),
-    );
-    expect(
-      nextAvailable(days, 4).map((w) => `${w.date} ${w.localStart}`),
-    ).toEqual([
+    const days = availableWindows(query({ from: "2026-10-10", to: "2026-10-12" }));
+    expect(nextAvailable(days, 4).map((w) => `${w.date} ${w.localStart}`)).toEqual([
       "2026-10-10 08:00",
       "2026-10-10 11:00",
       "2026-10-10 14:00",

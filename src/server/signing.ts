@@ -26,13 +26,8 @@ export function bookingAccessToken(bookingId: string): string {
   return mac("booking", bookingId).slice(0, 32);
 }
 
-export function verifyBookingAccessToken(
-  bookingId: string,
-  token: string | undefined,
-): boolean {
-  return (
-    typeof token === "string" && same(bookingAccessToken(bookingId), token)
-  );
+export function verifyBookingAccessToken(bookingId: string, token: string | undefined): boolean {
+  return typeof token === "string" && same(bookingAccessToken(bookingId), token);
 }
 
 /** A JSON payload with a signature, for cookies. */
@@ -41,10 +36,7 @@ export function sealJson(purpose: string, payload: unknown): string {
   return `${body}.${mac(purpose, body)}`;
 }
 
-export function openJson<T>(
-  purpose: string,
-  sealed: string | undefined,
-): T | null {
+export function openJson<T>(purpose: string, sealed: string | undefined): T | null {
   if (!sealed) return null;
   const [body, signature] = sealed.split(".");
   if (!body || !signature || !same(mac(purpose, body), signature)) return null;

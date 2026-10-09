@@ -54,10 +54,7 @@ export function unwrap<T>(
 }
 
 /** For commands that return nothing: throws on error, like unwrap(). */
-export function ensureOk(
-  result: { error: PostgrestError | null },
-  what: string,
-): void {
+export function ensureOk(result: { error: PostgrestError | null }, what: string): void {
   if (result.error) {
     throw (
       toCommandError(result.error) ??
