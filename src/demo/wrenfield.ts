@@ -6,8 +6,14 @@
  * service zones look plausible.
  *
  * The rule objects are tenant data: they are written to rule_versions and the owner edits them in the
- * admin console. The domain layer (stage 2) validates and interprets them.
+ * admin console. The domain layer validates and interprets them.
  */
+
+import type {
+  CancellationRules,
+  PricingRules,
+  ScheduleRules,
+} from "@/domain/rules";
 
 export const wrenfieldTenant = {
   slug: "wrenfield",
@@ -128,9 +134,9 @@ export const wrenfieldServices = [
   },
 ] as const;
 
-export const wrenfieldPricingRules = {
+export const wrenfieldPricingRules: PricingRules = {
   services: {
-    standard: { base_cents: 12000, base_minutes: 120 },
+    standard: { base_cents: 12000, base_minutes: 120, recurring: true },
     deep: { base_cents: 26000, base_minutes: 240 },
     move_in_out: {
       base_cents: 31000,
@@ -173,7 +179,7 @@ export const wrenfieldPricingRules = {
     biweekly: 10,
     monthly: 5,
   },
-  first_visit_deep_if_no_clean_days: 60,
+  first_visit: { upgrade_to: "deep", if_no_professional_clean_days: 60 },
   minimum_cents: 15000,
   zones: [
     {
@@ -227,7 +233,7 @@ export const wrenfieldPricingRules = {
   deposit: { percent: 25, minimum_cents: 5000 },
 };
 
-export const wrenfieldScheduleRules = {
+export const wrenfieldScheduleRules: ScheduleRules = {
   business_hours: {
     mon: ["08:00", "18:00"],
     tue: ["08:00", "18:00"],
@@ -251,11 +257,12 @@ export const wrenfieldScheduleRules = {
   closed_dates: ["2026-11-26", "2026-12-24", "2026-12-25", "2027-01-01"],
 };
 
-export const wrenfieldCancellationRules = {
+export const wrenfieldCancellationRules: CancellationRules = {
   free_before_hours: 48,
-  flat_fee: { within_hours: 48, cents: 4000 },
-  late: { within_hours: 24, percent: 50 },
-  no_access_percent: 50,
+  flat_fee_cents: 4000,
+  late_within_hours: 24,
+  late_fee_percent: 50,
+  no_access_fee_percent: 50,
 };
 
 type DemoClient = {
