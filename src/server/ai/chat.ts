@@ -64,12 +64,22 @@ export async function runTurn(
     stream: true,
   });
 
+  // Short remarks between tool calls arrive as separate text blocks; keep them apart as paragraphs.
+  let wroteText = false;
+  let startsBlock = false;
   for (let attempt = 0; ; attempt++) {
     try {
       for await (const stream of runner) {
         for await (const event of stream) {
-          if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+          if (event.type === "content_block_start" && event.content_block.type === "text") {
+            startsBlock = wroteText;
+          } else if (event.type === "content_block_delta" && event.delta.type === "text_delta") {
+            if (startsBlock && event.delta.text.trim()) {
+              emit({ type: "text", delta: "\n\n" });
+              startsBlock = false;
+            }
             emit({ type: "text", delta: event.delta.text });
+            wroteText ||= event.delta.text.trim().length > 0;
           }
         }
         const message = await stream.finalMessage();

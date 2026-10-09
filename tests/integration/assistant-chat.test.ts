@@ -165,6 +165,8 @@ afterAll(async () => {
 describe("chat turn", () => {
   it("streams text, runs the tool, logs it, and stores the turn for replay", async () => {
     const { runTurn } = await import("@/server/ai/chat");
+    const { aiConfig } = await import("@/server/ai/config");
+    const { strictUnsupportedKeywords } = await import("@/server/ai/tools");
     const { data: conversation } = await tenant.admin
       .from("ai_conversations")
       .insert({
@@ -191,7 +193,8 @@ describe("chat turn", () => {
         .filter((e) => e.type === "text")
         .map((e) => e.delta)
         .join(""),
-    ).toBe("Let me check. We're open Monday to Saturday.");
+      // Text blocks before and after the tool call stream as separate paragraphs.
+    ).toBe("Let me check. \n\nWe're open Monday to Saturday.");
     expect(
       events.filter((e) => e.type.startsWith("tool_")).map((e) => `${e.type}:${e.name}`),
     ).toEqual(["tool_start:get_business_info", "tool_end:get_business_info"]);
@@ -200,7 +203,7 @@ describe("chat turn", () => {
     // The request shape the assistant relies on.
     const first = requests[0]!;
     expect(first.body).toMatchObject({
-      model: "claude-opus-5-5",
+      model: aiConfig.model,
       fallbacks: "default",
       cache_control: { type: "ephemeral" },
       output_config: { effort: "medium" },
@@ -212,8 +215,21 @@ describe("chat turn", () => {
       strict?: boolean;
       eager_input_streaming?: boolean;
     }[];
-    expect(tools.every((t) => t.strict === true && t.eager_input_streaming === true)).toBe(true);
+    expect(tools.every((t) => t.eager_input_streaming === true)).toBe(true);
+    // Strict everywhere except create_booking, which opts out to stay under the API's grammar size limit.
+    expect(tools.filter((t) => t.strict !== true).map((t) => t.name)).toEqual(["create_booking"]);
     expect(tools.map((t) => t.name)).not.toContain("cancel_booking"); // guests do not get visit-changing tools
+    // Strict tool use rejects numeric bounds, string lengths and patterns with a 400.
+    const keys = new Set<string>();
+    const collect = (node: unknown): void => {
+      if (!node || typeof node !== "object") return;
+      for (const [key, value] of Object.entries(node)) {
+        keys.add(key);
+        collect(value);
+      }
+    };
+    collect(tools.map((t) => (t as { input_schema?: unknown }).input_schema));
+    expect(strictUnsupportedKeywords.filter((k) => keys.has(k))).toEqual([]);
 
     // The tool call is logged, the turn stored: user, assistant (tool use), user (tool result), assistant.
     const { data: calls } = await tenant.admin
