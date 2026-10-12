@@ -1,6 +1,6 @@
 -- Payments: who sees what, idempotent provider events, booking confirmation, refunds.
 begin;
-select plan(24);
+select plan(26);
 
 select tests.load_fixture();
 
@@ -156,6 +156,23 @@ select throws_ok(
   '42501',
   null,
   'a cleaner cannot issue refunds'
+);
+
+-- Saved cards and providers -------------------------------------------------------------------------------
+
+select public.cmd_save_billing(tests.id('tenant_a'), tests.id('client_2'), 'simulated', 'sim_cus_2b');
+select is(
+  (select row(customer_ref, payment_method_ref, card_last4)::text from public.client_billing
+   where client_id = tests.id('client_2')),
+  '(sim_cus_2b,sim_pm_4242,4242)',
+  'a new customer at the same provider keeps the saved card'
+);
+select public.cmd_save_billing(tests.id('tenant_a'), tests.id('client_2'), 'stripe', 'cus_2');
+select is(
+  (select row(provider, customer_ref, payment_method_ref, card_brand, card_last4, card_exp_month, card_exp_year)::text
+   from public.client_billing where client_id = tests.id('client_2')),
+  '(stripe,cus_2,,,,,)',
+  'moving to another provider drops the card saved at the old one'
 );
 
 -- Visibility ---------------------------------------------------------------------------------------------

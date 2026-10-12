@@ -3,7 +3,7 @@ import "server-only";
 import { adminDb } from "../db/admin";
 import { nullable } from "../db/args";
 import { CommandError, ensureOk, unwrap } from "../db/errors";
-import { paymentProvider } from "./index";
+import { paymentProvider, providerByName } from "./index";
 import { simulateCheckout, type SimulatedTestCard } from "./simulated";
 import type { CheckoutSession, PaymentPurpose, PaymentStatus, ProviderEvent } from "./types";
 
@@ -45,12 +45,16 @@ async function loadBooking(bookingId: string) {
   );
 }
 
+/**
+ * The client's customer at the provider that takes new checkouts. Moving to another provider drops the card
+ * saved at the old one (cmd_save_billing); the checkout saves a new one.
+ */
 async function customerFor(booking: Awaited<ReturnType<typeof loadBooking>>) {
   const provider = paymentProvider();
   const db = adminDb();
   const { data: billing } = await db
     .from("client_billing")
-    .select("provider, customer_ref, payment_method_ref")
+    .select("provider, customer_ref")
     .eq("tenant_id", booking.tenant_id)
     .eq("client_id", booking.client_id)
     .maybeSingle();
@@ -74,10 +78,7 @@ async function customerFor(booking: Awaited<ReturnType<typeof loadBooking>>) {
       "save customer",
     );
   }
-  return {
-    customerRef,
-    paymentMethodRef: sameProvider ? billing.payment_method_ref : null,
-  };
+  return customerRef;
 }
 
 /**
@@ -106,7 +107,7 @@ export async function startBookingCheckout(bookingId: string): Promise<CheckoutS
     .maybeSingle();
   if (open) return provider.resumeCheckout(open.provider_payment_id, mode);
 
-  const { customerRef } = await customerFor(booking);
+  const customerRef = await customerFor(booking);
   const metadata = {
     booking_id: booking.id,
     booking_number: String(booking.number),
@@ -226,11 +227,15 @@ export async function chargeSavedCard(input: {
       failureMessage: null,
     };
   }
-  const provider = paymentProvider();
   const db = adminDb();
   const booking = await loadBooking(input.bookingId);
-  const { customerRef, paymentMethodRef } = await customerFor(booking);
-  if (!paymentMethodRef) {
+  const { data: billing } = await db
+    .from("client_billing")
+    .select("provider, customer_ref, payment_method_ref")
+    .eq("tenant_id", booking.tenant_id)
+    .eq("client_id", booking.client_id)
+    .maybeSingle();
+  if (!billing?.payment_method_ref) {
     return {
       status: "failed",
       paymentId: null,
@@ -238,6 +243,10 @@ export async function chargeSavedCard(input: {
       failureMessage: "The client has no saved card.",
     };
   }
+  // The card is charged where it was saved, whichever provider takes new checkouts now.
+  const provider = providerByName(billing.provider);
+  const customerRef = billing.customer_ref;
+  const paymentMethodRef = billing.payment_method_ref;
 
   const { count } = await db
     .from("payments")
@@ -304,13 +313,7 @@ export async function refundPayment(input: {
       .single(),
     "load payment",
   );
-  const provider = paymentProvider();
-  if (payment.provider !== provider.name) {
-    throw new CommandError(
-      "invalid_input",
-      `This payment was taken by the ${payment.provider} provider, which is not configured now`,
-    );
-  }
+  const provider = providerByName(payment.provider);
   if (payment.status !== "succeeded") {
     throw new CommandError("invalid_status", "Only a succeeded payment can be refunded");
   }
