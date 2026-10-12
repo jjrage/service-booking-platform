@@ -46,6 +46,16 @@ is a separate tenant.
       <br><sub>Crew app: the job, access notes and checklist on a phone</sub>
     </td>
   </tr>
+  <tr>
+    <td>
+      <img src="docs/screenshots/race.png" alt="Race demo: ten simultaneous bookings for one window, one wins">
+      <br><sub>Race demo: ten bookings fired at one window at once; the database lets exactly one in</sub>
+    </td>
+    <td>
+      <img src="docs/screenshots/ai-log.png" alt="Admin console: the AI assistant's log with tool calls and results">
+      <br><sub>AI log: every tool call the assistant made, with its input and result</sub>
+    </td>
+  </tr>
 </table>
 
 ## What a business gets
