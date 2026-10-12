@@ -14,6 +14,7 @@ export type GuestBooking = {
   number: number;
   tenantId: string;
   tenantSlug: string;
+  tenantName: string;
   timezone: string;
   status: string;
   serviceName: string;
@@ -42,7 +43,7 @@ export async function loadGuestBooking(bookingId: string): Promise<GuestBooking 
     .select(
       "id, number, tenant_id, status, arrival_window, duration_minutes, total_cents, deposit_cents, currency, " +
         "payment_due_by, quote, client_id, " +
-        "tenant:tenants!inner(slug, timezone), service:services!inner(name), " +
+        "tenant:tenants!inner(slug, name, timezone), service:services!inner(name), " +
         "client:clients!inner(full_name, email), " +
         "property:properties!inner(address_line1, address_line2, city, state, zip)",
     )
@@ -63,7 +64,7 @@ export async function loadGuestBooking(bookingId: string): Promise<GuestBooking 
         recurringVisit?: { totalCents: number } | null;
       };
       client_id: string;
-      tenant: { slug: string; timezone: string };
+      tenant: { slug: string; name: string; timezone: string };
       service: { name: string };
       client: { full_name: string; email: string };
       property: {
@@ -100,6 +101,7 @@ export async function loadGuestBooking(bookingId: string): Promise<GuestBooking 
     number: booking.number,
     tenantId: booking.tenant_id,
     tenantSlug: booking.tenant.slug,
+    tenantName: booking.tenant.name,
     timezone: booking.tenant.timezone,
     status: booking.status,
     serviceName: booking.service.name,

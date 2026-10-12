@@ -22,6 +22,7 @@ type Props = {
   amountLabel: string;
   returnUrl: string;
   paymentDueBy: string | null;
+  businessName: string;
 };
 
 export function PaymentForm(props: Props) {
@@ -65,7 +66,11 @@ const stripePromises = new Map<string, Promise<Stripe | null>>();
 function StripeForm(props: Props & { publishableKey: string }) {
   const stripePromise = useMemo(() => {
     if (!stripePromises.has(props.publishableKey)) {
-      stripePromises.set(props.publishableKey, loadStripe(props.publishableKey));
+      // Test mode adds Stripe's developer assistant button over the page; visitors of the demo don't need it.
+      stripePromises.set(
+        props.publishableKey,
+        loadStripe(props.publishableKey, { developerTools: { assistant: { enabled: false } } }),
+      );
     }
     return stripePromises.get(props.publishableKey)!;
   }, [props.publishableKey]);
@@ -86,7 +91,7 @@ function StripeForm(props: Props & { publishableKey: string }) {
   );
 }
 
-function StripeFields({ session, amountLabel, returnUrl }: Props) {
+function StripeFields({ session, amountLabel, returnUrl, businessName }: Props) {
   const stripe = useStripe();
   const elements = useElements();
   const router = useRouter();
@@ -132,8 +137,15 @@ function StripeFields({ session, amountLabel, returnUrl }: Props) {
               // Card only, without Stripe's Link sign-up; the businesses and their clients are in the US.
               wallets: { link: "never" },
               defaultValues: { billingDetails: { address: { country: "US" } } },
+              // Stripe's own consent line names the Stripe account; the business's line below names the business.
+              terms: { card: "never" },
             }}
           />
+          <p className="text-xs text-zinc-500">
+            {session.mode === "setup"
+              ? `By saving your card, you allow ${businessName} to charge it after each visit and for any fee under its cancellation policy.`
+              : `By paying, you allow ${businessName} to save your card and charge it for the rest of the visit and any fee under its cancellation policy.`}
+          </p>
           {error && <Alert tone="danger">{error}</Alert>}
           <Button type="submit" size="lg" className="w-full" disabled={!stripe || pending}>
             {pending && <Spinner />}
