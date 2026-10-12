@@ -1,6 +1,6 @@
 "use server";
 
-import { refresh } from "next/cache";
+import { redirect, RedirectType } from "next/navigation";
 import { z } from "zod";
 
 import { requireCleaner } from "@/server/auth/viewer";
@@ -10,7 +10,9 @@ import { sendSoon } from "@/server/notifications/sender";
 
 /**
  * Crew app actions. The database checks that the cleaner belongs to the booking's crew; photos were uploaded
- * by the browser straight to storage, where the bucket's policies allowed it only under this job.
+ * by the browser straight to storage, where the bucket's policies allowed it only under this job. On success they
+ * redirect back to the job with the outcome in `?done=`: the page then shows the report instead of the form, and
+ * the outcome above it.
  */
 
 const inputSchema = z.object({
@@ -22,38 +24,33 @@ const inputSchema = z.object({
 
 export async function completeJobAction(
   input: z.input<typeof inputSchema>,
-): Promise<{ ok: true; message: string } | { ok: false; message: string }> {
+): Promise<{ ok: false; message: string }> {
   const viewer = await requireCleaner();
   const parsed = inputSchema.parse(input);
+  let outcome: "charged" | "payment_pending";
   try {
     const { charge } = await completeJob({ ...parsed, actorUserId: viewer.userId });
-    refresh();
-    sendSoon();
-    return {
-      ok: true,
-      message:
-        charge.status === "succeeded"
-          ? "Job done. The client's card was charged."
-          : "Job done. The office will follow up on the payment.",
-    };
+    outcome = charge.status === "succeeded" ? "charged" : "payment_pending";
   } catch (error) {
     if (error instanceof CommandError) return { ok: false, message: error.message };
     throw error;
   }
+  sendSoon();
+  redirect(`/crew/jobs/${parsed.bookingId}?done=${outcome}`, RedirectType.replace);
 }
 
 export async function noAccessAction(
   bookingId: string,
   note: string,
-): Promise<{ ok: true; message: string } | { ok: false; message: string }> {
+): Promise<{ ok: false; message: string }> {
   const viewer = await requireCleaner();
+  const id = z.uuid().parse(bookingId);
   try {
-    await markNoAccess({ bookingId: z.uuid().parse(bookingId), actorUserId: viewer.userId, note });
-    refresh();
-    sendSoon();
-    return { ok: true, message: "Reported. The office and the client are notified." };
+    await markNoAccess({ bookingId: id, actorUserId: viewer.userId, note });
   } catch (error) {
     if (error instanceof CommandError) return { ok: false, message: error.message };
     throw error;
   }
+  sendSoon();
+  redirect(`/crew/jobs/${id}?done=no_access`, RedirectType.replace);
 }
