@@ -85,6 +85,7 @@ async function Checkout({
           amountLabel={plan ? "Save card" : `Pay ${money(booking.depositCents)}`}
           returnUrl={bookingUrl}
           paymentDueBy={booking.paymentDueBy}
+          businessName={booking.tenantName}
         />
       </div>
 
