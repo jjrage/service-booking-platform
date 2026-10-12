@@ -43,6 +43,10 @@ export async function insertHistory(
 
   // Plans --------------------------------------------------------------------------------------------
   const planIds = history.plans.map(() => crypto.randomUUID());
+  // The seeded generator repeats its ids from one reset to the next; the rows get fresh ones, so nothing keyed
+  // by a booking id (simulated payment references, processed payment events) carries over from a past reset.
+  const bookingIds = new Map(history.bookings.map((b) => [b.id, crypto.randomUUID()]));
+  const idOf = (b: { id: string }) => bookingIds.get(b.id)!;
   await insertAll(
     admin,
     "recurring_plans",
@@ -76,7 +80,7 @@ export async function insertHistory(
     admin,
     "bookings",
     history.bookings.map((b) => ({
-      id: b.id,
+      id: idOf(b),
       tenant_id: tenantId,
       client_id: b.clientId,
       property_id: b.propertyId,
@@ -110,7 +114,7 @@ export async function insertHistory(
         crew_id: b.crewId,
         kind: "booking" as const,
         busy: range(b.busyStart, b.busyEnd),
-        booking_id: b.id,
+        booking_id: idOf(b),
         created_at: b.createdAt,
       })),
     ...history.timeOff.map((t) => ({
@@ -127,7 +131,7 @@ export async function insertHistory(
   // Booking history ----------------------------------------------------------------------------------
   const events: Record<string, unknown>[] = [];
   for (const b of history.bookings) {
-    const base = { tenant_id: tenantId, booking_id: b.id };
+    const base = { tenant_id: tenantId, booking_id: idOf(b) };
     const plan = b.source === "plan";
     events.push({
       ...base,
@@ -179,12 +183,12 @@ export async function insertHistory(
     return {
       id: crypto.randomUUID(),
       tenant_id: tenantId,
-      booking_id: b.id,
+      booking_id: idOf(b),
       client_id: b.clientId,
       purpose: p.purpose,
       amount_cents: p.amountCents,
       provider: "simulated" as const,
-      provider_payment_id: `sim_seed_${i}_${b.id.slice(0, 8)}`,
+      provider_payment_id: `sim_seed_${i}_${idOf(b).slice(0, 8)}`,
       status: p.status,
       off_session: p.offSession,
       failure_code: p.failureCode ?? null,
