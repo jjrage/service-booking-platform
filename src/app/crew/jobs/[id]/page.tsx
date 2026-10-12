@@ -14,20 +14,35 @@ import { FinishJob } from "./finish-job";
 
 export const metadata: Metadata = { title: "Job" };
 
-export default function JobPage({ params }: PageProps<"/crew/jobs/[id]">) {
+export default function JobPage({ params, searchParams }: PageProps<"/crew/jobs/[id]">) {
   return (
     <Suspense fallback={<Skeleton className="h-96" />}>
-      <Job params={params} />
+      <Job params={params} searchParams={searchParams} />
     </Suspense>
   );
 }
 
-async function Job({ params }: Pick<PageProps<"/crew/jobs/[id]">, "params">) {
+/** What the crew app's actions report after they redirect back to the job (see crew/actions.ts). */
+const outcomes = {
+  charged: { tone: "success", text: "Job done. The client's card was charged." },
+  payment_pending: { tone: "warning", text: "Job done. The office will follow up on the payment." },
+  no_access: { tone: "info", text: "Reported. The office and the client are notified." },
+} as const;
+
+async function Job({
+  params,
+  searchParams,
+}: Pick<PageProps<"/crew/jobs/[id]">, "params" | "searchParams">) {
   const { id } = await params;
+  const { done } = await searchParams;
   const viewer = await requireCleaner(`/crew/jobs/${id}`);
   const job = /^[0-9a-f-]{36}$/.test(id) ? await crewJob(viewer.staff, id) : null;
   if (!job) notFound();
   const p = job.property;
+  const outcome =
+    job.status !== "confirmed" && typeof done === "string" && done in outcomes
+      ? outcomes[done as keyof typeof outcomes]
+      : null;
   const mapQuery = p
     ? encodeURIComponent(`${p.address_line1}, ${p.city}, ${p.state} ${p.zip}`)
     : null;
@@ -49,6 +64,8 @@ async function Job({ params }: Pick<PageProps<"/crew/jobs/[id]">, "params">) {
         </div>
         <BookingStatus status={job.status} />
       </div>
+
+      {outcome && <Alert tone={outcome.tone}>{outcome.text}</Alert>}
 
       {p ? (
         <Card>

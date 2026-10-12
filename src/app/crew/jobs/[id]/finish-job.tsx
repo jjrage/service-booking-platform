@@ -153,7 +153,8 @@ export function FinishJob({
                 notes,
                 photoPaths: photos.map((p) => p.path),
               });
-              setMessage({ ok: result.ok, text: result.message });
+              // Success redirects to the job with the outcome; only a refusal comes back here.
+              if (result && !result.ok) setMessage({ ok: false, text: result.message });
             })
           }
         >
@@ -167,7 +168,8 @@ export function FinishJob({
           onClick={() =>
             startTransition(async () => {
               const result = await noAccessAction(bookingId, notes || "Could not get in");
-              setMessage({ ok: result.ok, text: result.message });
+              // Success redirects to the job with the outcome; only a refusal comes back here.
+              if (result && !result.ok) setMessage({ ok: false, text: result.message });
             })
           }
         >

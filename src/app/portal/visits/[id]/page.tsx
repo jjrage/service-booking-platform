@@ -59,7 +59,11 @@ async function Visit({ params }: Pick<PageProps<"/portal/visits/[id]">, "params"
             />
           ) : (
             <Card className="p-5 text-sm text-zinc-600">
-              This visit can no longer be changed online. Call us if something is wrong.
+              {visit.status === "cancelled"
+                ? "This visit is cancelled. Any fee or refund is listed under Payments."
+                : visit.status === "completed"
+                  ? "This visit is done. The receipt is listed under Payments."
+                  : "This visit can no longer be changed online. Call us if something is wrong."}
             </Card>
           )}
         </div>
