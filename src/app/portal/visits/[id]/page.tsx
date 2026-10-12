@@ -102,7 +102,11 @@ async function Visit({ params }: Pick<PageProps<"/portal/visits/[id]">, "params"
                             : "Paid"
                           : p.status === "failed"
                             ? "Declined"
-                            : p.status}
+                            : p.status === "requires_action"
+                              ? "Needs your approval"
+                              : p.status === "canceled"
+                                ? "Cancelled"
+                                : "Processing"}
                       </span>
                     </div>
                   </li>
