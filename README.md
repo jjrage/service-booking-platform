@@ -10,8 +10,10 @@ The demo business is **Wrenfield Home Cleaning**, a fictional house-cleaning com
 tied to cleaning: services, prices, zones, hours and cancellation terms are the business's data, and every business
 is a separate tenant.
 
-> **Status:** feature-complete. Live demo: _link after deployment_. Every role is one click away on the demo's
-> landing page, and the data resets every night.
+> **Status:** feature-complete. **Live demo:
+> [service-booking-platform-iota.vercel.app](https://service-booking-platform-iota.vercel.app)**. Every role is one
+> click away on the demo's landing page, payments run in Stripe test mode (card `4242 4242 4242 4242`), and the data
+> resets every night.
 
 <!-- Demo video goes here. -->
 
