@@ -21,6 +21,6 @@ export const aiConfig = {
     conversationsPerVisitorPerDay: 6,
     turnsPerVisitorPerDay: 60,
     /** A ceiling for the whole public demo per business per day; the API key also has a spending limit. */
-    turnsPerTenantPerDay: 400,
+    turnsPerTenantPerDay: 150,
   },
 } as const;
