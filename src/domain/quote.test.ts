@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { wrenfieldPricingRules as rules } from "@/demo/wrenfield";
 
-import { quote, type QuoteRequest } from "./quote";
+import { homeSizeOptions, quote, type QuoteRequest } from "./quote";
 import { pricingRulesSchema } from "./rules";
 
 const baseHome = { bedrooms: 1, fullBaths: 1, halfBaths: 0, sqft: 1500 };
@@ -43,6 +43,30 @@ describe("quote()", () => {
     expect(q.firstVisit.durationMinutes).toBe(225);
     expect(q.depositCents).toBe(6375);
     expect(q.zone.code).toBe("A");
+  });
+
+  it("prices an unknown size by rooms alone, and a size range like any size inside it", () => {
+    const unknown = ok({ service: "standard", home: { ...emilyHome, sqft: null }, zip: "27609" });
+    expect(unknown.firstVisit.totalCents).toBe(25500 - 2 * 2000);
+    expect(unknown.firstVisit.lines.map((line) => line.code)).not.toContain("sqft");
+
+    const options = homeSizeOptions(rules);
+    expect(options.map((o) => o.label)).toEqual([
+      "Up to 1,500",
+      "1,500–2,000",
+      "2,000–2,500",
+      "2,500–3,000",
+      "3,000–3,500",
+      "3,500–4,000",
+    ]);
+    // Emily's 2,100 sq ft falls in 2,000–2,500, which prices the same as her exact size.
+    const range = options.find((o) => o.label === "2,000–2,500")!;
+    const ranged = ok({
+      service: "standard",
+      home: { ...emilyHome, sqft: range.sqft },
+      zip: "27609",
+    });
+    expect(ranged.firstVisit.totalCents).toBe(25500);
   });
 
   it("adds the zone travel surcharge on top of the cleaning price", () => {

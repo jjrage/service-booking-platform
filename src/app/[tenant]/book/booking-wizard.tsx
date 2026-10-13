@@ -49,7 +49,7 @@ export function BookingWizard(props: WizardContext & { initialService: string })
       bedrooms: Math.max(included.bedrooms, 2),
       fullBaths: Math.max(included.full_baths, 1),
       halfBaths: included.half_baths,
-      sqft: Math.max(included.sqft, 1200),
+      sqft: null,
     },
     addons: {},
     condition: "normal",

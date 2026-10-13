@@ -1,7 +1,9 @@
 "use client";
 
-import type { QuoteInput, QuoteResult } from "@/domain/quote";
-import { frequencies, type Frequency } from "@/domain/rules";
+import { useState } from "react";
+
+import { homeSizeOptions, type QuoteInput, type QuoteResult } from "@/domain/quote";
+import { frequencies, type Frequency, type PricingRules } from "@/domain/rules";
 import { Button } from "@/ui/button";
 import { Card, CardBody, CardHeader } from "@/ui/card";
 import { cn } from "@/ui/cn";
@@ -110,23 +112,6 @@ export function HomeStep({
             min={0}
             onChange={(halfBaths) => setHome({ halfBaths })}
           />
-          <Field label="Size (sq ft)" htmlFor="sqft">
-            <Input
-              id="sqft"
-              type="number"
-              inputMode="numeric"
-              min={200}
-              max={10000}
-              step={50}
-              value={request.home.sqft}
-              onChange={(e) =>
-                setHome({
-                  sqft: Math.min(10000, Math.max(200, Number(e.target.value) || 200)),
-                })
-              }
-              className="max-w-36"
-            />
-          </Field>
           <Field
             label="ZIP code"
             htmlFor="zip"
@@ -153,6 +138,13 @@ export function HomeStep({
               className="max-w-36"
             />
           </Field>
+          <SizeField
+            className="sm:col-span-2"
+            pricing={pricing}
+            sqft={request.home.sqft}
+            onChange={(sqft) => setHome({ sqft })}
+            money={money}
+          />
           <Field label="Condition">
             <div className="flex gap-2">
               {(["normal", "heavy"] as const).map((condition) => (
@@ -296,6 +288,86 @@ export function HomeStep({
         </Button>
       </div>
     </div>
+  );
+}
+
+/**
+ * Most people know their rooms, not their square footage: the size is a range, "Not sure" (priced by rooms)
+ * or an exact number.
+ */
+function SizeField({
+  pricing,
+  sqft,
+  onChange,
+  money,
+  className,
+}: {
+  pricing: PricingRules;
+  sqft: number | null;
+  onChange: (sqft: number | null) => void;
+  money: (cents: number) => string;
+  className?: string;
+}) {
+  const options = homeSizeOptions(pricing);
+  const [exact, setExact] = useState(
+    () => sqft !== null && !options.some((option) => option.sqft === sqft),
+  );
+  const selected = exact ? "exact" : sqft === null ? "unknown" : String(sqft);
+  const step = pricing.home_size.sqft_step;
+  const chip = (key: string, label: string, onClick: () => void) => (
+    <button
+      key={key}
+      type="button"
+      aria-pressed={selected === key}
+      onClick={onClick}
+      className={cn(
+        "rounded-lg px-3 py-2 text-sm ring-1",
+        selected === key
+          ? "bg-brand-50 font-medium text-brand-900 ring-2 ring-brand-600"
+          : "bg-white text-zinc-700 ring-zinc-200 hover:ring-zinc-300",
+      )}
+    >
+      {label}
+    </button>
+  );
+
+  return (
+    <Field
+      className={className}
+      label="Home size (sq ft)"
+      hint={`Not sure? We price by bedrooms and bathrooms. Homes over ${pricing.included.sqft.toLocaleString("en-US")} sq ft add ${money(step.cents)} per ${step.size.toLocaleString("en-US")} sq ft.`}
+    >
+      <div className="flex flex-wrap gap-2">
+        {chip("unknown", "Not sure", () => {
+          setExact(false);
+          onChange(null);
+        })}
+        {options.map((option) =>
+          chip(String(option.sqft), option.label, () => {
+            setExact(false);
+            onChange(option.sqft);
+          }),
+        )}
+        {chip("exact", "Exact size", () => {
+          setExact(true);
+          onChange(sqft ?? pricing.included.sqft);
+        })}
+      </div>
+      {exact && (
+        <Input
+          id="sqft"
+          aria-label="Exact size in square feet"
+          type="number"
+          inputMode="numeric"
+          min={200}
+          max={10000}
+          step={50}
+          value={sqft ?? ""}
+          onChange={(e) => onChange(Math.min(10000, Math.max(200, Number(e.target.value) || 200)))}
+          className="max-w-36"
+        />
+      )}
+    </Field>
   );
 }
 

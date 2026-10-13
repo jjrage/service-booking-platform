@@ -15,7 +15,8 @@ export const quoteInputSchema = z.object({
     bedrooms: z.int().min(0).max(10),
     fullBaths: z.int().min(0).max(10),
     halfBaths: z.int().min(0).max(10),
-    sqft: z.int().min(200).max(10000),
+    /** Null when the client doesn't know: the home is priced by its rooms, with no size surcharge. */
+    sqft: z.int().min(200).max(10000).nullable(),
   }),
   /** Add-on code → quantity (1 for add-ons that are not priced per unit). */
   addons: z.record(z.string(), z.int().min(0).max(100)).default({}),
@@ -184,6 +185,30 @@ export function quote(rules: PricingRules, request: QuoteRequest): QuoteResult {
   };
 }
 
+/** Started size steps over the size the base price covers; an unknown size adds none. */
+function sizeSteps(rules: PricingRules, sqft: number | null): number {
+  if (sqft === null) return 0;
+  return Math.ceil(Math.max(0, sqft - rules.included.sqft) / rules.home_size.sqft_step.size);
+}
+
+export type HomeSizeOption = { label: string; sqft: number };
+
+/**
+ * Size ranges for clients who don't know their exact square footage, built from the business's size steps.
+ * Each range is priced at its upper end, which costs the same as any size inside it.
+ */
+export function homeSizeOptions(rules: PricingRules, ranges = 5): HomeSizeOption[] {
+  const base = rules.included.sqft;
+  const step = rules.home_size.sqft_step.size;
+  const sqft = (n: number) => n.toLocaleString("en-US");
+  const options: HomeSizeOption[] = [{ label: `Up to ${sqft(base)}`, sqft: base }];
+  for (let i = 1; i <= ranges; i++) {
+    const upper = base + i * step;
+    options.push({ label: `${sqft(upper - step)}–${sqft(upper)}`, sqft: upper });
+  }
+  return options;
+}
+
 function priceVisit(
   rules: PricingRules,
   input: QuoteInput,
@@ -235,7 +260,7 @@ function priceVisit(
   extra(
     "sqft",
     `Extra size (per ${size.sqft_step.size.toLocaleString("en-US")} sq ft over ${included.sqft.toLocaleString("en-US")})`,
-    Math.ceil(Math.max(0, input.home.sqft - included.sqft) / size.sqft_step.size),
+    sizeSteps(rules, input.home.sqft),
     size.sqft_step,
   );
 

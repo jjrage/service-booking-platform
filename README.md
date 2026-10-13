@@ -353,6 +353,8 @@ Ideas kept out of scope on purpose:
   condition is flagged for the office to review).
 - Stripe Connect, so each business on the platform gets paid into its own account.
 - Real SMS reminders (today they are written to a log).
+- Quick-reply buttons in the chat (home size ranges, arrival windows). Today the assistant prices by bedrooms and
+  bathrooms when the size is unknown, and the booking form offers size ranges.
 - Short-term rental turnovers. Set aside for now: syncing with Airbnb through iCal cannot keep the "never booked
   twice" guarantee.
 
