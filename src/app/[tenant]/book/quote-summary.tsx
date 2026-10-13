@@ -29,8 +29,8 @@ export function QuoteSummary({
         <p className="mt-1 font-semibold text-zinc-900">{serviceName(request.service)}</p>
         <p className="text-sm text-zinc-500">
           {request.home.bedrooms} bed · {request.home.fullBaths} bath
-          {request.home.halfBaths > 0 && ` · ${request.home.halfBaths} half bath`} ·{" "}
-          {request.home.sqft.toLocaleString("en-US")} sq ft
+          {request.home.halfBaths > 0 && ` · ${request.home.halfBaths} half bath`}
+          {request.home.sqft !== null && ` · ${request.home.sqft.toLocaleString("en-US")} sq ft`}
         </p>
         {hold && (
           <p className="mt-2 text-sm font-medium text-brand-800">

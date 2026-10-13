@@ -86,7 +86,10 @@ export const visitSchema = z.strictObject({
     .int()
     .min(200)
     .max(10000)
-    .describe("Approximate square footage; 1500 if the client does not know"),
+    .nullable()
+    .describe(
+      "Square footage if the client knows it (for a range, its upper end). Null if they don't: the price is then by bedrooms and bathrooms, which is how to explain it",
+    ),
   zip: z.string().describe("5-digit ZIP code of the home"),
   addons: z
     .array(z.strictObject({ code: z.string(), quantity: z.int().min(1).max(50) }))
